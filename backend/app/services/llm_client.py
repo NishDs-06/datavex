@@ -10,7 +10,7 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-TIMEOUT = httpx.Timeout(120.0, connect=10.0)
+TIMEOUT = httpx.Timeout(180.0, connect=15.0)
 
 
 async def chat_completion(

@@ -1,36 +1,66 @@
-import { CAPABILITIES } from './data';
+/**
+ * CapabilityMatch — shows how DataVex capabilities map to company pain signals.
+ * Now works with both static data and API-fetched data.
+ */
+
+const DEFAULT_CAPABILITIES = [
+    { name: 'Real-Time Pipeline Repair', score: 96, desc: 'Automated detection and self-healing of broken data connectors. Reduces MTTR from hours to minutes.' },
+    { name: 'Legacy Stack Migration', score: 84, desc: 'Structured migration from monolithic warehouses to composable architectures with zero-downtime cutover.' },
+    { name: 'Schema Evolution Management', score: 88, desc: 'Automatic schema drift detection and downstream contract enforcement.' },
+    { name: 'Data Observability Layer', score: 91, desc: 'End-to-end lineage tracking, anomaly detection, and SLA alerting across all pipeline stages.' },
+    { name: 'Vector Search Infrastructure', score: 73, desc: 'Production-grade embedding pipelines and vector index management for AI-native data products.' },
+];
 
 export default function CapabilityMatch({ company }) {
-    const match = company.strongestMatch;
+    const match = company?.strongest_match || company?.strongestMatch || {};
+    const capabilityMatches = company?.capability_match || company?.capabilityMatch || [];
+
+    if (!match.capability && capabilityMatches.length === 0) {
+        return (
+            <div style={{
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                borderRadius: '24px', padding: '40px', textAlign: 'center',
+                boxShadow: 'var(--shadow)',
+            }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-muted)' }}>
+                    Capability analysis will appear after deeper agent analysis.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div>
             {/* Strongest match summary */}
-            <div style={{
-                background: 'var(--accent-tint)', border: '1px solid var(--accent)',
-                borderRadius: '24px', padding: '28px 36px', marginBottom: '40px',
-                display: 'flex', alignItems: 'center', gap: '28px',
-            }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '52px', color: 'var(--accent)', lineHeight: 1 }}>
-                    {match.score}%
-                </span>
-                <div>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)' }}>
-                        STRONGEST MATCH
+            {match.capability && (
+                <div style={{
+                    background: 'var(--accent-tint)', border: '1px solid var(--accent)',
+                    borderRadius: '24px', padding: '28px 36px', marginBottom: '40px',
+                    display: 'flex', alignItems: 'center', gap: '28px',
+                }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '52px', color: 'var(--accent)', lineHeight: 1 }}>
+                        {match.score || 0}%
                     </span>
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', fontWeight: 500, color: 'var(--text-primary)', marginTop: '6px' }}>
-                        {match.capability} →  {match.pain}
-                    </p>
-                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                        GAP: {match.gap}
-                    </p>
+                    <div>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)' }}>
+                            STRONGEST MATCH
+                        </span>
+                        <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', fontWeight: 500, color: 'var(--text-primary)', marginTop: '6px' }}>
+                            {match.capability} →  {match.pain || 'Detected pain signal'}
+                        </p>
+                        {match.gap && (
+                            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                                GAP: {match.gap}
+                            </p>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Full-width capability cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {CAPABILITIES.map((cap) => {
-                    const matches = company.capabilityMatch.filter(cm => cm.capability === cap.name);
+                {DEFAULT_CAPABILITIES.map((cap) => {
+                    const matches = capabilityMatches.filter(cm => cm.capability === cap.name);
                     const hasMatch = matches.length > 0;
 
                     return (

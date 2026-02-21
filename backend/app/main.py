@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
-from app.routers import scan, companies, system
+from app.routers import scan, companies, system, discover
 
 # ── Logging ─────────────────────────────────────────────────
 logging.basicConfig(
@@ -48,6 +48,7 @@ def on_startup():
 app.include_router(scan.router)
 app.include_router(companies.router)
 app.include_router(system.router)
+app.include_router(discover.router)
 
 
 # ── Root ────────────────────────────────────────────────────

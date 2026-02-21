@@ -205,10 +205,10 @@ def _offline_fallback(prompt: str, system: str) -> dict:
 
 # ── DataVex Capability Graph ────────────────────────────────
 DATAVEX_CAPABILITIES = {
-    "ai_analytics": ["AI hiring", "ML platform", "data science", "NLP", "computer vision"],
-    "cloud_devops": ["Kubernetes", "AWS migration", "cloud modernization", "DevOps", "infrastructure"],
-    "digital_transformation": ["legacy modernization", "digital strategy", "ERP migration"],
-    "data_engineering": ["data pipeline", "ETL", "data warehouse", "real-time analytics"],
+    "ai_analytics": ["AI", "AI analytics", "AI hiring", "ML platform", "machine learning", "data science", "NLP", "computer vision", "ML", "enterprise AI", "generative"],
+    "cloud_devops": ["cloud", "Kubernetes", "AWS", "cloud modernization", "DevOps", "infrastructure", "k8s", "GCP", "Azure", "Spark"],
+    "digital_transformation": ["legacy modernization", "digital strategy", "ERP migration", "digital transformation"],
+    "data_engineering": ["data engineering", "data pipeline", "ETL", "data warehouse", "real-time analytics", "data lake", "database"],
 }
 
 # ── Role Mapping ────────────────────────────────────────────

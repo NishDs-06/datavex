@@ -58,7 +58,7 @@ def _run_discovery_pipeline(scan_id: str):
         from orchestrator import run_pipeline
 
         # Default query for DataVex's target market
-        user_input = "mid-size fintech and AI SaaS companies in India looking for data engineering and cloud modernization"
+        user_input = "AI analytics, data platform, and ML database companies looking for data engineering and cloud modernization"
 
         # Update scan
         scan.company_name = "Auto-Discovery"

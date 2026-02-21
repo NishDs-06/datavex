@@ -88,7 +88,7 @@ log("=" * 70)
 from models import UserIntent, DealProfile
 import agent1_discovery
 
-intent = UserIntent(raw_text="mid-size fintech and AI SaaS companies in India looking for data engineering and cloud modernization")
+intent = UserIntent(raw_text="AI analytics, data platform, and ML database companies looking for data engineering and cloud modernization")
 profile = DealProfile()
 
 log(f"\n  Input: {intent.raw_text}")

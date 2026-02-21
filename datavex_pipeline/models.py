@@ -14,7 +14,7 @@ class DealProfile(BaseModel):
     min_deal_usd: int = 500_000
     max_deal_usd: int = 10_000_000
     target_regions: list[str] = ["India", "US"]
-    preferred_company_sizes: list[str] = ["small", "mid"]
+    preferred_company_sizes: list[str] = ["small", "mid", "large"]
 
 class CandidateCompany(BaseModel):
     company_name: str

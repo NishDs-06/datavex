@@ -99,21 +99,25 @@ DEMO_COMPANIES = [
     },
 ]
 
-# 15-company sample dataset for Agent 1 filtering
+# Company dataset for Agent 1 filtering
+# Primary targets: Fractal Analytics, Databricks, MindsDB
 SAMPLE_COMPANIES = [
-    {"company_name": "Krea.ai", "domain": "krea.ai", "industry": "AI SaaS", "size": "small", "estimated_employees": 150, "region": "India"},
-    {"company_name": "Slice", "domain": "sliceit.com", "industry": "Fintech", "size": "mid", "estimated_employees": 800, "region": "India"},
-    {"company_name": "Sarvam AI", "domain": "sarvam.ai", "industry": "AI Infrastructure", "size": "small", "estimated_employees": 80, "region": "India"},
+    # ── PRIMARY TARGETS ──
+    {"company_name": "Fractal Analytics", "domain": "fractal.ai", "industry": "AI Analytics", "size": "large", "estimated_employees": 4000, "region": "India",
+     "tech_signals": ["AI analytics", "cloud modernization", "data engineering", "machine learning", "data pipeline", "enterprise AI"]},
+    {"company_name": "Databricks", "domain": "databricks.com", "industry": "AI Analytics", "size": "large", "estimated_employees": 7000, "region": "US",
+     "tech_signals": ["data engineering", "data lake", "ML platform", "cloud", "ETL", "data pipeline", "AI", "Spark"]},
+    {"company_name": "MindsDB", "domain": "mindsdb.com", "industry": "AI/ML Database", "size": "small", "estimated_employees": 100, "region": "US",
+     "tech_signals": ["AI", "machine learning", "database", "data engineering", "cloud", "NLP"]},
+    # ── OTHER COMPANIES ──
     {"company_name": "Razorpay", "domain": "razorpay.com", "industry": "Fintech", "size": "large", "estimated_employees": 3500, "region": "India"},
     {"company_name": "Postman", "domain": "postman.com", "industry": "DevTools", "size": "mid", "estimated_employees": 900, "region": "India"},
     {"company_name": "Zoho", "domain": "zoho.com", "industry": "Enterprise SaaS", "size": "large", "estimated_employees": 15000, "region": "India"},
     {"company_name": "Darwinbox", "domain": "darwinbox.com", "industry": "HR Tech", "size": "mid", "estimated_employees": 600, "region": "India"},
-    {"company_name": "Fractal Analytics", "domain": "fractal.ai", "industry": "AI Analytics", "size": "large", "estimated_employees": 4000, "region": "India"},
     {"company_name": "Hasura", "domain": "hasura.io", "industry": "Developer Tools", "size": "small", "estimated_employees": 180, "region": "US"},
     {"company_name": "SingleStore", "domain": "singlestore.com", "industry": "Database", "size": "mid", "estimated_employees": 500, "region": "US"},
     {"company_name": "Anyscale", "domain": "anyscale.com", "industry": "AI Infrastructure", "size": "mid", "estimated_employees": 300, "region": "US"},
     {"company_name": "dbt Labs", "domain": "getdbt.com", "industry": "Data Engineering", "size": "mid", "estimated_employees": 600, "region": "US"},
-    {"company_name": "Practo", "domain": "practo.com", "industry": "Healthtech", "size": "mid", "estimated_employees": 700, "region": "India"},
-    {"company_name": "Eruditus", "domain": "eruditus.com", "industry": "Edtech", "size": "large", "estimated_employees": 2500, "region": "India"},
     {"company_name": "Yellow.ai", "domain": "yellow.ai", "industry": "AI SaaS", "size": "mid", "estimated_employees": 1100, "region": "India"},
 ]
+

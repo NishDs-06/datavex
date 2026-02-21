@@ -1,9 +1,9 @@
 """
 DataVex Pipeline — Web Scraper
-Real-time company intelligence via DuckDuckGo Lite HTML scraping.
+Real-time company intelligence via Brave Search HTML scraping.
 Used by Agent 2 (signals) and Agent 4 (decision makers).
 
-Uses lite.duckduckgo.com (simple HTML) — no API, no rate limits.
+Brave Search is reliable, returns rich snippets, and doesn't rate-limit.
 """
 import logging
 import time
@@ -30,48 +30,72 @@ USER_AGENTS = [
 
 def web_search(query: str, max_results: int = 5) -> list[dict]:
     """
-    Search via DuckDuckGo Lite (HTML scraping, no API).
+    Search via Brave Search (HTML scraping).
     Returns list of {"title": str, "body": str, "href": str}
     """
     if not HAS_DEPS:
         return []
 
     encoded_query = urllib.parse.quote_plus(query)
-    url = f"https://lite.duckduckgo.com/lite/?q={encoded_query}"
+    url = f"https://search.brave.com/search?q={encoded_query}"
 
     headers = {
         "User-Agent": random.choice(USER_AGENTS),
-        "Accept": "text/html",
+        "Accept": "text/html,application/xhtml+xml",
         "Accept-Language": "en-US,en;q=0.9",
     }
 
     try:
         resp = requests.get(url, headers=headers, timeout=15)
         if resp.status_code != 200:
-            logger.warning(f"  DDG Lite returned {resp.status_code}")
+            logger.warning(f"  Brave returned {resp.status_code}")
             return []
 
         soup = BeautifulSoup(resp.text, "html.parser")
-        links = soup.select("a.result-link")
-        snippets = soup.select("td.result-snippet")
-
         results = []
-        for i, link in enumerate(links[:max_results]):
-            href = link.get("href", "")
-            # DDG lite wraps URLs in redirect — extract the real URL
-            if "uddg=" in href:
-                real_url = urllib.parse.unquote(href.split("uddg=")[1].split("&")[0])
-            else:
-                real_url = href
 
-            title = link.get_text(strip=True)
-            body = snippets[i].get_text(strip=True) if i < len(snippets) else ""
+        # Find all links with meaningful text in the search results
+        for a in soup.find_all("a", href=True):
+            href = a.get("href", "")
+            text = a.get_text(strip=True)
 
-            # Skip DDG's own pages
-            if "duckduckgo.com" in real_url:
+            # Skip non-result links
+            if not text or len(text) < 10:
+                continue
+            if "brave.com" in href or not href.startswith("http"):
                 continue
 
-            results.append({"title": title, "body": body, "href": real_url})
+            # Get snippet from parent div
+            parent = a.find_parent("div")
+            snippet = ""
+            if parent:
+                # Look for nearby snippet text
+                snippet_el = parent.find("div", class_="snippet-description") or parent.find("p")
+                if snippet_el:
+                    snippet = snippet_el.get_text(strip=True)
+                else:
+                    # Try siblings
+                    for sib in parent.find_next_siblings(limit=2):
+                        sib_text = sib.get_text(strip=True)
+                        if len(sib_text) > 30:
+                            snippet = sib_text[:300]
+                            break
+
+            # Clean up title
+            title = text.replace("\n", " ").strip()
+
+            # Deduplicate by URL
+            if any(r["href"] == href for r in results):
+                continue
+
+            results.append({
+                "title": title[:150],
+                "body": snippet[:300],
+                "href": href,
+            })
+
+            if len(results) >= max_results:
+                break
 
         logger.info(f"  🔍 '{query[:50]}...' → {len(results)} results")
         return results
@@ -79,27 +103,6 @@ def web_search(query: str, max_results: int = 5) -> list[dict]:
     except Exception as e:
         logger.warning(f"  Search error: {e}")
         return []
-
-
-def _fetch_page_text(url: str, timeout: int = 5) -> str:
-    """Fetch a page and extract text for more context."""
-    if not HAS_DEPS:
-        return ""
-    try:
-        headers = {"User-Agent": random.choice(USER_AGENTS)}
-        resp = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
-        if resp.status_code != 200:
-            return ""
-
-        soup = BeautifulSoup(resp.text, "html.parser")
-        for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
-            tag.decompose()
-
-        paragraphs = soup.find_all("p")
-        parts = [p.get_text(strip=True) for p in paragraphs[:6] if len(p.get_text(strip=True)) > 25]
-        return " ".join(parts)[:500] if parts else ""
-    except Exception:
-        return ""
 
 
 def scrape_company_signals(company_name: str, domain: str = "") -> dict:
@@ -188,26 +191,31 @@ def search_decision_makers(company_name: str, target_role: str) -> list[dict]:
 
             if "linkedin.com" in href.lower() or "linkedin" in combined.lower():
                 name = title.split(" - ")[0].split(" | ")[0].strip()
-                # Clean up LinkedIn title artifacts
-                for suffix in [" | LinkedIn", " - LinkedIn"]:
-                    name = name.replace(suffix, "")
-                name = name.strip()
-                if name and len(name) > 2:
+                # Clean up LinkedIn suffixes
+                for suffix in [" | LinkedIn", " - LinkedIn", "LinkedIn"]:
+                    name = name.replace(suffix, "").strip()
+                # Clean up invisible chars and URLs embedded in title
+                name = name.split("›")[0].strip()
+                name = name.split("http")[0].strip()
+                if name and len(name) > 2 and len(name) < 50:
                     people.append({
                         "name": name,
                         "role": target_role,
                         "source": f"linkedin: {href}",
-                        "raw_title": title,
+                        "raw_title": title[:200],
                         "raw_body": body[:200],
                     })
             elif any(kw in combined.lower() for kw in ["cto", "ceo", "founder", "vp engineer", "head of", "chief", "co-founder"]):
-                people.append({
-                    "name": title.split(" - ")[0].split(" | ")[0].strip(),
-                    "role": target_role,
-                    "source": f"web: {href}",
-                    "raw_title": title,
-                    "raw_body": body[:200],
-                })
+                name = title.split(" - ")[0].split(" | ")[0].strip()
+                name = name.split("›")[0].strip()
+                if name and len(name) > 2 and len(name) < 50:
+                    people.append({
+                        "name": name,
+                        "role": target_role,
+                        "source": f"web: {href}",
+                        "raw_title": title[:200],
+                        "raw_body": body[:200],
+                    })
 
         if people:
             break

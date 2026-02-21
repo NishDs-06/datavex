@@ -66,12 +66,13 @@ def score_fit(company: dict, deal_profile: DealProfile, intent_filters: dict) ->
     # Geo fit
     geo_score = 1.0 if company["region"] in deal_profile.target_regions else 0.3
 
-    # Capability score — look up demo data for richer signals, fall back to industry keywords
-    tech_signals = []
-    for demo in DEMO_COMPANIES:
-        if demo["company_name"] == company["company_name"]:
-            tech_signals = demo.get("tech_signals", [])
-            break
+    # Capability score — check company dict first, then demo data, fall back to industry keywords
+    tech_signals = company.get("tech_signals", [])
+    if not tech_signals:
+        for demo in DEMO_COMPANIES:
+            if demo["company_name"] == company["company_name"]:
+                tech_signals = demo.get("tech_signals", [])
+                break
     if not tech_signals:
         tech_signals = [company["industry"]]
     capability_score = match_capabilities(tech_signals)
@@ -117,6 +118,10 @@ def score_fit(company: dict, deal_profile: DealProfile, intent_filters: dict) ->
     )
 
 
+# Companies with their own tech_signals field are primary targets — they get priority
+PRIMARY_TARGETS = {c["company_name"] for c in SAMPLE_COMPANIES if "tech_signals" in c}
+
+
 def run(user_intent: UserIntent, deal_profile: DealProfile) -> list[CandidateCompany]:
     """Run Agent 1: parse intent, discover companies, score fit, filter top 3."""
     logger.info(f"AGENT 1 — TargetDiscovery: parsing '{user_intent.raw_text}'")
@@ -131,11 +136,10 @@ def run(user_intent: UserIntent, deal_profile: DealProfile) -> list[CandidateCom
         scored = score_fit(company, deal_profile, intent_filters)
         candidates.append(scored)
 
-    # Step 3: Filter > 0.4 and sort by score (demo companies get tie-breaking priority)
-    demo_names = {d["company_name"] for d in DEMO_COMPANIES}
+    # Step 3: Filter > 0.4 and sort — primary targets get priority on ties
     filtered = [c for c in candidates if c.initial_match_score > 0.4]
     filtered.sort(
-        key=lambda c: (c.initial_match_score, 1 if c.company_name in demo_names else 0),
+        key=lambda c: (c.initial_match_score, 1 if c.company_name in PRIMARY_TARGETS else 0),
         reverse=True,
     )
 
@@ -143,3 +147,4 @@ def run(user_intent: UserIntent, deal_profile: DealProfile) -> list[CandidateCom
     top = filtered[:3]
     logger.info(f"  Filtered to {len(top)} candidates: {[c.company_name for c in top]}")
     return top
+

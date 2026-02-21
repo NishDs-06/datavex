@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 
+/info_gather/myenv
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

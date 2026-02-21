@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════
-   DATAVEX — Calm Editorial Tokens (V3)
+   DATAVEX — Calm Editorial Tokens (V4)
    ═══════════════════════════════════════════ */
 
 :root {
-  /* ── PALETTE (9 values, zero one-offs) ── */
+  /* ── PALETTE (10 values) ── */
   --bg: #F9F7F4;
   --surface: #FFFFFF;
   --border: #E8E4DE;
@@ -13,6 +13,7 @@
   --warning: #C2601F;
   --accent-tint: #F0F7F3;
   --sidebar-bg: #F2EFE9;
+  --accent-soft: rgba(26, 107, 71, 0.08);
 
   /* ── FONTS ── */
   --font-display: 'Instrument Serif', serif;
@@ -32,7 +33,7 @@
   --radius-section: 20px;
   --radius-input: 8px;
 
-  /* ── SHADOW (barely-there lift) ── */
+  /* ── SHADOW ── */
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -79,7 +80,6 @@ body,
 
 /* ── ANIMATION KEYFRAMES ── */
 
-/* 1. Sections cascade up on page load */
 @keyframes sectionUp {
   from {
     transform: translateY(8px);
@@ -92,7 +92,6 @@ body,
   }
 }
 
-/* 2. Company switch — content fade */
 @keyframes contentFade {
   from {
     opacity: 0;
@@ -103,7 +102,6 @@ body,
   }
 }
 
-/* 3. Trace lines appear sequentially */
 @keyframes traceIn {
   from {
     opacity: 0;
@@ -143,4 +141,30 @@ button {
 button:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding: 10px 16px;
+  outline: none;
+  transition: border-color 150ms;
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }

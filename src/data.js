@@ -1,5 +1,13 @@
 /* Company intelligence data — 3 fully specific targets, zero generic copy */
 
+export const CAPABILITIES = [
+    { name: 'Real-Time Pipeline Repair', score: 96, desc: 'Automated detection and self-healing of broken data connectors. Reduces MTTR from hours to minutes.' },
+    { name: 'Legacy Stack Migration', score: 84, desc: 'Structured migration from monolithic warehouses to composable architectures with zero-downtime cutover.' },
+    { name: 'Schema Evolution Management', score: 88, desc: 'Automatic schema drift detection and downstream contract enforcement.' },
+    { name: 'Data Observability Layer', score: 91, desc: 'End-to-end lineage tracking, anomaly detection, and SLA alerting across all pipeline stages.' },
+    { name: 'Vector Search Infrastructure', score: 73, desc: 'Production-grade embedding pipelines and vector index management for AI-native data products.' },
+];
+
 export const COMPANIES = [
     {
         id: 'meridian',
@@ -9,6 +17,16 @@ export const COMPANIES = [
         confidence: 'HIGH',
         coverage: 73,
         receptivity: 'HIGH — ACT WITHIN 90 DAYS',
+        painTags: ['HIGH PAIN', 'HIGH PAIN', 'MED PAIN'],
+        capabilityMatch: [
+            { pain: 'Connector failures causing 4hr delays', source: 'GITHUB ISSUES', severity: 'HIGH', capability: 'Real-Time Pipeline Repair' },
+            { pain: 'Monolithic warehouse costs exploding', source: 'INVESTOR REPORT', severity: 'HIGH', capability: 'Legacy Stack Migration' },
+            { pain: 'Schema drift breaking downstream BI', source: 'GLASSDOOR', severity: 'MED', capability: 'Schema Evolution Management' },
+            { pain: 'Manual migration failing', source: 'TECH BLOG', severity: 'HIGH', capability: 'Legacy Stack Migration' },
+            { pain: 'Stale data on dashboards', source: 'GITHUB ISSUES', severity: 'LOW', capability: 'Data Observability Layer' },
+            { pain: 'No visibility into lineage', source: 'LINKEDIN JOBS', severity: 'MED', capability: 'Data Observability Layer' },
+        ],
+        strongestMatch: { score: 75, capability: 'Real-Time Pipeline Repair', pain: 'Connector failures causing 4hr delays', gap: 'Vector Search (no detected need)' },
         financials: {
             quarters: ['Q1 24', 'Q2 24', 'Q3 24', 'Q4 24', 'Q1 25', 'Q2 25'],
             margin: [18.2, 17.4, 16.8, 15.9, 15.1, 14.6],
@@ -83,6 +101,14 @@ export const COMPANIES = [
         descriptor: 'Fintech / Capital Markets · 890 employees · Series C · $67M ARR',
         score: 64, confidence: 'MEDIUM', coverage: 58,
         receptivity: 'MEDIUM — MONITOR FOR 30 DAYS',
+        painTags: ['HIGH PAIN', 'MED PAIN', 'MED PAIN'],
+        capabilityMatch: [
+            { pain: 'SOC2 audit control failures', source: 'AUDIT REPORT', severity: 'HIGH', capability: 'Data Observability Layer' },
+            { pain: 'Monolith blocking multi-asset launch', source: 'G2 REVIEWS', severity: 'HIGH', capability: 'Legacy Stack Migration' },
+            { pain: 'Backtesting OOM at 500K instruments', source: 'GITHUB ISSUES', severity: 'MED', capability: 'Vector Search Infrastructure' },
+            { pain: 'No continuous compliance monitoring', source: 'LINKEDIN JOBS', severity: 'MED', capability: 'Data Observability Layer' },
+        ],
+        strongestMatch: { score: 68, capability: 'Data Observability Layer', pain: 'SOC2 audit control failures', gap: 'Schema Evolution (low signal)' },
         financials: {
             quarters: ['Q1 24', 'Q2 24', 'Q3 24', 'Q4 24', 'Q1 25', 'Q2 25'],
             margin: [12.1, 11.8, 10.9, 9.7, 8.4, 7.2],
@@ -154,6 +180,14 @@ export const COMPANIES = [
         descriptor: 'Industrial Automation · 5,100 employees · Public (NASD: APRT) · $420M revenue',
         score: 41, confidence: 'LOW', coverage: 81,
         receptivity: 'LOW — LONG CYCLE, PLANT SEEDS',
+        painTags: ['HIGH PAIN', 'MED PAIN', 'LOW PAIN'],
+        capabilityMatch: [
+            { pain: '3 CI systems with no shared registry', source: 'GLASSDOOR', severity: 'HIGH', capability: 'Legacy Stack Migration' },
+            { pain: 'VectorFlow talent attrition', source: 'LINKEDIN JOBS', severity: 'MED', capability: null },
+            { pain: 'No unified control plane', source: 'SEC FILING', severity: 'MED', capability: 'Real-Time Pipeline Repair' },
+            { pain: '47 integration blockers growing', source: 'GITHUB ISSUES', severity: 'LOW', capability: 'Data Observability Layer' },
+        ],
+        strongestMatch: { score: 52, capability: 'Legacy Stack Migration', pain: '3 CI systems with no shared registry', gap: 'Vector Search + Schema Evolution (no signal)' },
         financials: {
             quarters: ['Q1 24', 'Q2 24', 'Q3 24', 'Q4 24', 'Q1 25', 'Q2 25'],
             margin: [62.4, 62.1, 61.8, 62.0, 61.2, 60.4],

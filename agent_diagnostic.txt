@@ -2,7 +2,7 @@
   DATAVEX AGENT DIAGNOSTIC
   Model: llama3.1:8b
   Base URL: http://100.109.131.90:11434/v1
-  Time: 2026-02-21 22:14:05
+  Time: 2026-02-21 22:34:38
 ======================================================================
 
 
@@ -15,7 +15,7 @@
   ✓ ONLINE MODE — agents will call Ollama LLM for real analysis
 
 [STEP 0.5] Testing LLM connection with a simple prompt...
-  ✓ LLM responded in 3.8s: 'Hello Datavex'
+  ✓ LLM responded in 3.2s: 'Hello Datavex'
 
 
 ======================================================================
@@ -25,7 +25,7 @@
   Input: mid-size fintech and AI SaaS companies in India looking for data engineering and cloud modernization
   Deal: min=$500,000, max=$10,000,000, regions=['India', 'US'], sizes=['small', 'mid']
 
-  ✓ Agent 1 completed in 2.4s — found 3 candidates
+  ✓ Agent 1 completed in 2.1s — found 3 candidates
 
 ────────────────────────────────────────────────────────────
   Candidate 1: Slice
@@ -101,7 +101,7 @@
   AGENT 2 — SIGNAL EXTRACTION
 ======================================================================
 
-  ✓ Agent 2 completed in 11.6s — signals for 3 companies
+  ✓ Agent 2 completed in 54.0s — signals for 3 companies
 
 ────────────────────────────────────────────────────────────
   Signals for: Slice
@@ -109,114 +109,150 @@
 {
   "company_name": "Slice",
   "pivot": {
-    "label": "product shift",
-    "confidence": 0.4,
+    "label": "expanding digital banking presence",
+    "confidence": 0.5,
     "evidence": [
       {
-        "text": "Slice migrating core banking stack from legacy Java monolith to cloud-native architecture. Estimated 18-month timeline.",
+        "text": "slice Eyes $250-300 Mn To Boost Its Digital Banking Play — Backed by Tiger Global, the company plans to expand its physical and digital presence in2025and has initiatedfundingdiscussions to support this growth.",
         "source": "news",
-        "recency_days": 90
-      }
-    ]
-  },
-  "tech_debt": {
-    "label": "legacy systems, migration challenges",
-    "confidence": 0.4,
-    "evidence": [
+        "recency_days": 20
+      },
       {
-        "text": "GitHub shows legacy Java repos with 200+ open issues. Recent PRs reference 'strangler fig migration' pattern. CI builds averaging 28 minutes.",
-        "source": "tech_stack",
-        "recency_days": 10
+        "text": "Slice in Talks to Raise $250-$300 Million as It Expands Post-Merger ... — Slice, the rapidly growing fintech company, is reportedly in discussions to raise between $250 million and $300 million infundingfrom a combination of financial investors and family offices. This round offundingcomes at a sign",
+        "source": "news",
+        "recency_days": 20
       }
     ]
   },
+  "tech_debt": null,
   "fiscal_pressure": {
-    "label": "cost cutting, layoffs, burn rate concerns",
-    "confidence": 0.4,
+    "label": "raising $250-300 million in funding",
+    "confidence": 0.6000000000000001,
     "evidence": [
       {
-        "text": "Data Warehouse Architect — migrate from on-prem MySQL cluster to Snowflake. Must optimize for regulatory reporting.",
-        "source": "careers",
-        "recency_days": 21
+        "text": "slice Eyes $250-300 Mn To Boost Its Digital Banking Play — Backed by Tiger Global, the company plans to expand its physical and digital presence in2025and has initiatedfundingdiscussions to support this growth.",
+        "source": "news",
+        "recency_days": 20
+      },
+      {
+        "text": "Slice in Talks to Raise $250-$300 Million as It Expands Post-Merger ... — Slice, the rapidly growing fintech company, is reportedly in discussions to raise between $250 million and $300 million infundingfrom a combination of financial investors and family offices. This round offundingcomes at a sign",
+        "source": "news",
+        "recency_days": 20
+      },
+      {
+        "text": "Slice Bank in talks to raise $250 million to expand its digital banking ... — Slicehas started rolling out its banking services to select user groups, offering aggressive interest rates on savings accounts. Also Read:Slicelaunches its UPI-first account for all users The Tiger Global-backed company i",
+        "source": "news",
+        "recency_days": 20
       }
     ]
   },
   "why_now_triggers": [
     {
-      "event": "10% layoff + cost cutting mandate",
-      "recency_days": 60,
+      "event": "Slice is in talks to raise $250-$300 million in funding",
+      "recency_days": 4,
       "impact": "high"
     },
     {
-      "event": "Legacy monolith migration started",
-      "recency_days": 90,
-      "impact": "med"
+      "event": "Slice has started rolling out its banking services and offering aggressive interest rates on savings accounts",
+      "recency_days": 2,
+      "impact": "medium"
     },
     {
-      "event": "4 P0 incidents/week driving SRE hiring",
-      "recency_days": 7,
-      "impact": "med"
+      "event": "The company plans to expand its physical and digital presence in 2025 and has initiated funding discussions to support this growth",
+      "recency_days": 4,
+      "impact": "high"
     }
   ],
-  "company_state": "TECH_MODERNIZATION",
+  "company_state": "COST_OPTIMIZATION",
   "raw_texts": [
     {
-      "text": "Staff Engineer — decompose monolithic payment processing engine into event-driven microservices. Java/Kotlin + Kafka experience.",
+      "text": "Slice Careers — Open for Talent — Referrals increase your chances of interviewing atsliceby 2x Get notified about newEngineeringManagerjobsin Bengaluru, Karnataka, India.",
       "source": "careers",
-      "recency_days": 14
+      "recency_days": 30
     },
     {
-      "text": "Data Warehouse Architect — migrate from on-prem MySQL cluster to Snowflake. Must optimize for regulatory reporting.",
+      "text": "slice hiring Engineering Manager in Bengaluru, Karnataka, India | LinkedIn — Unleash your potential atslice. Come build a new-age financial experience that challenges the status quo and makes life epic!",
       "source": "careers",
-      "recency_days": 21
+      "recency_days": 30
     },
     {
-      "text": "SRE Lead — reduce P0 incident rate by 50%. Currently averaging 4 production incidents per week.",
-      "source": "careers",
-      "recency_days": 7
-    },
-    {
-      "text": "Slice lays off 10% of workforce amid funding winter. CEO memo: 'Focus on profitability path, reduce burn by 30%.'",
+      "text": "slice Eyes $250-300 Mn To Boost Its Digital Banking Play — Backed by Tiger Global, the company plans to expand its physical and digital presence in2025and has initiatedfundingdiscussions to support this growth.",
       "source": "news",
-      "recency_days": 60
+      "recency_days": 20
     },
     {
-      "text": "Slice migrating core banking stack from legacy Java monolith to cloud-native architecture. Estimated 18-month timeline.",
+      "text": "Slice in Talks to Raise $250-$300 Million as It Expands Post-Merger ... — Slice, the rapidly growing fintech company, is reportedly in discussions to raise between $250 million and $300 million infundingfrom a combination of financial investors and family offices. This round offundingcomes at a sign",
       "source": "news",
-      "recency_days": 90
+      "recency_days": 20
     },
     {
-      "text": "GitHub shows legacy Java repos with 200+ open issues. Recent PRs reference 'strangler fig migration' pattern. CI builds averaging 28 minutes.",
+      "text": "Slice Bank in talks to raise $250 million to expand its digital banking ... — Slicehas started rolling out its banking services to select user groups, offering aggressive interest rates on savings accounts. Also Read:Slicelaunches its UPI-first account for all users The Tiger Global-backed company i",
+      "source": "news",
+      "recency_days": 20
+    },
+    {
+      "text": "Fintech small finance bank Slice in talks to raise $300 million — Fintech small finance bankSlicein talks to raise $300 million 27 Jan2025, 03:17 PM The company has reportedly briefed the Reserve Bank of India about its fundraising plans.",
+      "source": "news",
+      "recency_days": 20
+    },
+    {
+      "text": "Company Tech Stack Enrichment - Add Technology Data | Orange Slice — OrangeSliceenriches any company list with technologystackdata. See what CRM, marketing automation, analytics, andengineeringtools each company uses—prioritize accounts by technology fit.",
       "source": "tech_stack",
-      "recency_days": 10
+      "recency_days": 30
     },
     {
-      "text": "VP Engineering post: 'Our technical debt is our biggest blocker to profitability — every feature takes 3x longer than it should.'",
+      "text": "Dev Kudtharkar - Head - Information Technology | CISM | ITSM | ITIL ... — Head - Information Technology | CISM | ITSM | ITIL |Leading Enterprise IT Strategy | Data Center &amp; SecureInfrastructure| ISO 27001 | Cybersecurity | IT Governance &amp; Risk Management Expert · With over 20+ years in the I",
+      "source": "tech_stack",
+      "recency_days": 30
+    },
+    {
+      "text": "Slice - Tech Stack, Apps, Patents & Trademarks - Crunchbase — Slicetranscends 40-year-old tools and workflow with an elegant research and writing studio whose users report a 10X gain in productivity.",
+      "source": "tech_stack",
+      "recency_days": 30
+    },
+    {
+      "text": "slice engineering - Medium — Read writing fromsliceengineeringon Medium. Learn more about howslicedesigns, builds, and operates their systems andengineeringorganizations",
+      "source": "tech_stack",
+      "recency_days": 30
+    },
+    {
+      "text": "Updates To Our Tools | Slice Release Notes — See the latestupdates, improvements, andSlicerelease notes toSliceservices used by pizza shop owners.",
       "source": "blog",
-      "recency_days": 35
+      "recency_days": 30
+    },
+    {
+      "text": "Product update: Improved reports - SliceWP — Discover the latestupdatesin SliceWP! Improved reports page, with a new referral sales tab, new date picker and refreshed KPI cards.",
+      "source": "blog",
+      "recency_days": 30
+    },
+    {
+      "text": "Slice Announces Semi-Annual Innovation Launch: Slice Fresh — (Photo: Business Wire)Slice, the all-in-one independent pizza platform, releases majorproductand serviceupdatesthat improve the profitability of independent pizzerias.",
+      "source": "blog",
+      "recency_days": 30
     }
   ]
 }
 
   Company: Slice
-  State:   TECH_MODERNIZATION
-  PIVOT: DETECTED (confidence=0.40, label='product shift')
-    └─ [news] Slice migrating core banking stack from legacy Java monolith to cloud-native architecture. Estimated 18-month timeline....
-    ⚠ Evidence check: 1 items — check if these are from real data or LLM hallucination
-  TECH_DEBT: DETECTED (confidence=0.40, label='legacy systems, migration challenges')
-    └─ [tech_stack] GitHub shows legacy Java repos with 200+ open issues. Recent PRs reference 'strangler fig migration' pattern. CI builds ...
-    ⚠ Evidence check: 1 items — check if these are from real data or LLM hallucination
-  FISCAL_PRESSURE: DETECTED (confidence=0.40, label='cost cutting, layoffs, burn rate concerns')
-    └─ [careers] Data Warehouse Architect — migrate from on-prem MySQL cluster to Snowflake. Must optimize for regulatory reporting....
-    ⚠ Evidence check: 1 items — check if these are from real data or LLM hallucination
+  State:   COST_OPTIMIZATION
+  PIVOT: DETECTED (confidence=0.50, label='expanding digital banking presence')
+    └─ [news] slice Eyes $250-300 Mn To Boost Its Digital Banking Play — Backed by Tiger Global, the company plans to expand its physi...
+    └─ [news] Slice in Talks to Raise $250-$300 Million as It Expands Post-Merger ... — Slice, the rapidly growing fintech company, is...
+    ⚠ Evidence check: 2 items — check if these are from real data or LLM hallucination
+  TECH_DEBT: NOT DETECTED
+  FISCAL_PRESSURE: DETECTED (confidence=0.60, label='raising $250-300 million in funding')
+    └─ [news] slice Eyes $250-300 Mn To Boost Its Digital Banking Play — Backed by Tiger Global, the company plans to expand its physi...
+    └─ [news] Slice in Talks to Raise $250-$300 Million as It Expands Post-Merger ... — Slice, the rapidly growing fintech company, is...
+    └─ [news] Slice Bank in talks to raise $250 million to expand its digital banking ... — Slicehas started rolling out its banking s...
+    ⚠ Evidence check: 3 items — check if these are from real data or LLM hallucination
   WHY NOW TRIGGERS: 3 items
-    └─ {"event": "10% layoff + cost cutting mandate", "recency_days": 60, "impact": "high"}
-    └─ {"event": "Legacy monolith migration started", "recency_days": 90, "impact": "med"}
-    └─ {"event": "4 P0 incidents/week driving SRE hiring", "recency_days": 7, "impact": "med"}
-  RAW TEXTS: 7 source documents fed to LLM
-    └─ [careers] Staff Engineer — decompose monolithic payment processing engine into event-driven microservices. Jav...
-    └─ [careers] Data Warehouse Architect — migrate from on-prem MySQL cluster to Snowflake. Must optimize for regula...
-    └─ [careers] SRE Lead — reduce P0 incident rate by 50%. Currently averaging 4 production incidents per week....
+    └─ {"event": "Slice is in talks to raise $250-$300 million in funding", "recency_days": 4, "impact": "high"}
+    └─ {"event": "Slice has started rolling out its banking services and offering aggressive interest rates on savings accounts", "recency_days": 2, "impact": "medium"}
+    └─ {"event": "The company plans to expand its physical and digital presence in 2025 and has initiated funding discussions to support this growth", "recency_days": 4, "impact": "high"}
+  RAW TEXTS: 13 source documents fed to LLM
+    └─ [careers] Slice Careers — Open for Talent — Referrals increase your chances of interviewing atsliceby 2x Get n...
+    └─ [careers] slice hiring Engineering Manager in Bengaluru, Karnataka, India | LinkedIn — Unleash your potential ...
+    └─ [news] slice Eyes $250-300 Mn To Boost Its Digital Banking Play — Backed by Tiger Global, the company plans...
 
 ────────────────────────────────────────────────────────────
   Signals for: Krea.ai
@@ -224,131 +260,95 @@
 {
   "company_name": "Krea.ai",
   "pivot": {
-    "label": "enterprise expansion",
+    "label": "new product launch",
     "confidence": 0.5,
     "evidence": [
       {
-        "text": "Head of Enterprise Sales — drive 6-figure ACV deals with Fortune 500 clients. Track record in AI/ML SaaS required.",
+        "text": "KREA Jobs and Careers | Indeed.com — 13 KREAjobs. Apply to the latestjobsnear you. Learn about salary, employee reviews, interviews, benefits, and work-life balance",
         "source": "careers",
-        "recency_days": 10
-      },
-      {
-        "text": "Krea.ai raises $12M Series A to expand enterprise AI platform into US market. CEO says 'We're targeting $5M ARR by Q4 2026.'",
-        "source": "news",
         "recency_days": 30
-      }
-    ]
-  },
-  "tech_debt": {
-    "label": "infrastructure issues",
-    "confidence": 0.5,
-    "evidence": [
-      {
-        "text": "Hiring Senior ML Engineer — build real-time inference pipelines for enterprise clients. Experience with K8s, Ray Serve, and model monitoring required.",
-        "source": "careers",
-        "recency_days": 7
       },
       {
-        "text": "Platform Engineer (DevOps) — migrate monolithic training infra to cloud-native microservices on AWS EKS. Terraform + Helm experience mandatory.",
-        "source": "careers",
-        "recency_days": 14
-      }
-    ]
-  },
-  "fiscal_pressure": {
-    "label": "$12M Series A funding",
-    "confidence": 0.4,
-    "evidence": [
-      {
-        "text": "Krea.ai partners with AWS to offer GPU-optimized inference endpoints. Enterprise customers get dedicated model hosting.",
+        "text": "Krea raises $83M to be the one-stop shop for GenAI creatives — Krea'sfundingis being announced for the first time today, and the $83 million is actually coming in a few tranches: the latest, a Series B, totals $47 million.",
         "source": "news",
-        "recency_days": 45
+        "recency_days": 20
       }
     ]
   },
+  "tech_debt": null,
+  "fiscal_pressure": null,
   "why_now_triggers": [
     {
-      "event": "Series A closed — $12M, expanding enterprise",
-      "recency_days": 30,
+      "event": "Krea raises $83M to be the one-stop shop for GenAI creatives",
+      "recency_days": 14,
       "impact": "high"
     },
     {
-      "event": "AWS partnership for GPU inference",
-      "recency_days": 45,
-      "impact": "med"
-    },
-    {
-      "event": "Hiring Head of Enterprise Sales",
-      "recency_days": 10,
+      "event": "The latest funding round marks a huge moment for Krea AI, who just locked down $83 million in their Series B.",
+      "recency_days": 14,
       "impact": "high"
     }
   ],
-  "company_state": "TECH_MODERNIZATION",
+  "company_state": "GROWTH",
   "raw_texts": [
     {
-      "text": "Hiring Senior ML Engineer — build real-time inference pipelines for enterprise clients. Experience with K8s, Ray Serve, and model monitoring required.",
+      "text": "krea.ai hiring ML Engineer - Personalization ... - LinkedIn — ThisJobWe're looking for an ML Engineer to architect and build Krea's personalization and recommendation systems from scratch.",
       "source": "careers",
-      "recency_days": 7
-    },
-    {
-      "text": "Platform Engineer (DevOps) — migrate monolithic training infra to cloud-native microservices on AWS EKS. Terraform + Helm experience mandatory.",
-      "source": "careers",
-      "recency_days": 14
-    },
-    {
-      "text": "Data Engineer — design and maintain ETL pipelines processing 50M+ events/day. Apache Beam, BigQuery, and Airflow.",
-      "source": "careers",
-      "recency_days": 21
-    },
-    {
-      "text": "Head of Enterprise Sales — drive 6-figure ACV deals with Fortune 500 clients. Track record in AI/ML SaaS required.",
-      "source": "careers",
-      "recency_days": 10
-    },
-    {
-      "text": "Krea.ai raises $12M Series A to expand enterprise AI platform into US market. CEO says 'We're targeting $5M ARR by Q4 2026.'",
-      "source": "news",
       "recency_days": 30
     },
     {
-      "text": "Krea.ai partners with AWS to offer GPU-optimized inference endpoints. Enterprise customers get dedicated model hosting.",
+      "text": "KREA Jobs and Careers | Indeed.com — 13 KREAjobs. Apply to the latestjobsnear you. Learn about salary, employee reviews, interviews, benefits, and work-life balance",
+      "source": "careers",
+      "recency_days": 30
+    },
+    {
+      "text": "Jobs at krea.ai | Gradient - careers.gradient.com — Jobsatkrea.ai| Gradient",
+      "source": "careers",
+      "recency_days": 30
+    },
+    {
+      "text": "ML Engineer - Personalization & Recommendation Systems @ krea.ai ... — Krea is a company dedicated to building next-generation AI creative tools that empower human creativity. They are seeking an ML Engineer to architect and build personalization and recommendation systems, focusing on understanding",
+      "source": "careers",
+      "recency_days": 30
+    },
+    {
+      "text": "Krea raises $83M to be the one-stop shop for GenAI creatives — Krea'sfundingis being announced for the first time today, and the $83 million is actually coming in a few tranches: the latest, a Series B, totals $47 million.",
       "source": "news",
-      "recency_days": 45
+      "recency_days": 20
     },
     {
-      "text": "GitHub org shows 8 active repos: ML inference framework, K8s operators, data pipeline tools. 340+ stars on main repo. CI/CD with GitHub Actions.",
-      "source": "tech_stack",
-      "recency_days": 5
+      "text": "Krea AI Funding: $83 Million Secured to Revolutionize GenAI Creative ... — The latestfundinground marks a huge moment forKreaAI,who just locked down $83 million in their Series B. This big round signals growing belief inKreaAI'svision for the creative tech field. The fresh capital is set to bring ev",
+      "source": "news",
+      "recency_days": 20
     },
     {
-      "text": "CTO blog post: 'Why we moved from monolithic model serving to a composable inference mesh — 4x throughput, 60% cost reduction on AWS.'",
-      "source": "blog",
+      "text": "KREA - 2025 Company Profile, Team, Funding & Competitors - Tracxn — KREA - Provider of AI-generated photos and prompt collections. Raised a totalfundingof $83M over 3 rounds from 5 investors.",
+      "source": "news",
+      "recency_days": 20
+    },
+    {
+      "text": "KREA AI Relaunches Creator Partner Program: New Perks ... - blockchain.news — FAQ: What isKreaAI'sCreator Partner Program?KreaAI'sCreator Partner Program is a refreshed initiative announced on December 5,2025, offering creators perks like free credits, early tool access, and community reposts to fos",
+      "source": "news",
       "recency_days": 20
     }
   ]
 }
 
   Company: Krea.ai
-  State:   TECH_MODERNIZATION
-  PIVOT: DETECTED (confidence=0.50, label='enterprise expansion')
-    └─ [careers] Head of Enterprise Sales — drive 6-figure ACV deals with Fortune 500 clients. Track record in AI/ML SaaS required....
-    └─ [news] Krea.ai raises $12M Series A to expand enterprise AI platform into US market. CEO says 'We're targeting $5M ARR by Q4 20...
+  State:   GROWTH
+  PIVOT: DETECTED (confidence=0.50, label='new product launch')
+    └─ [careers] KREA Jobs and Careers | Indeed.com — 13 KREAjobs. Apply to the latestjobsnear you. Learn about salary, employee reviews,...
+    └─ [news] Krea raises $83M to be the one-stop shop for GenAI creatives — Krea'sfundingis being announced for the first time today,...
     ⚠ Evidence check: 2 items — check if these are from real data or LLM hallucination
-  TECH_DEBT: DETECTED (confidence=0.50, label='infrastructure issues')
-    └─ [careers] Hiring Senior ML Engineer — build real-time inference pipelines for enterprise clients. Experience with K8s, Ray Serve, ...
-    └─ [careers] Platform Engineer (DevOps) — migrate monolithic training infra to cloud-native microservices on AWS EKS. Terraform + Hel...
-    ⚠ Evidence check: 2 items — check if these are from real data or LLM hallucination
-  FISCAL_PRESSURE: DETECTED (confidence=0.40, label='$12M Series A funding')
-    └─ [news] Krea.ai partners with AWS to offer GPU-optimized inference endpoints. Enterprise customers get dedicated model hosting....
-    ⚠ Evidence check: 1 items — check if these are from real data or LLM hallucination
-  WHY NOW TRIGGERS: 3 items
-    └─ {"event": "Series A closed \u2014 $12M, expanding enterprise", "recency_days": 30, "impact": "high"}
-    └─ {"event": "AWS partnership for GPU inference", "recency_days": 45, "impact": "med"}
-    └─ {"event": "Hiring Head of Enterprise Sales", "recency_days": 10, "impact": "high"}
+  TECH_DEBT: NOT DETECTED
+  FISCAL_PRESSURE: NOT DETECTED
+  WHY NOW TRIGGERS: 2 items
+    └─ {"event": "Krea raises $83M to be the one-stop shop for GenAI creatives", "recency_days": 14, "impact": "high"}
+    └─ {"event": "The latest funding round marks a huge moment for Krea AI, who just locked down $83 million in their Series B.", "recency_days": 14, "impact": "high"}
   RAW TEXTS: 8 source documents fed to LLM
-    └─ [careers] Hiring Senior ML Engineer — build real-time inference pipelines for enterprise clients. Experience w...
-    └─ [careers] Platform Engineer (DevOps) — migrate monolithic training infra to cloud-native microservices on AWS ...
-    └─ [careers] Data Engineer — design and maintain ETL pipelines processing 50M+ events/day. Apache Beam, BigQuery,...
+    └─ [careers] krea.ai hiring ML Engineer - Personalization ... - LinkedIn — ThisJobWe're looking for an ML Enginee...
+    └─ [careers] KREA Jobs and Careers | Indeed.com — 13 KREAjobs. Apply to the latestjobsnear you. Learn about salar...
+    └─ [careers] Jobs at krea.ai | Gradient - careers.gradient.com — Jobsatkrea.ai| Gradient...
 
 ────────────────────────────────────────────────────────────
   Signals for: Sarvam AI
@@ -356,233 +356,206 @@
 {
   "company_name": "Sarvam AI",
   "pivot": {
-    "label": "new market",
-    "confidence": 0.5,
+    "label": "New product launch",
+    "confidence": 0.4,
     "evidence": [
       {
-        "text": "Sarvam AI announces Sarvam-1, a 7B parameter multilingual model trained on 22 Indian languages.",
-        "source": "news",
-        "recency_days": 40
-      },
-      {
-        "text": "Private repos — limited visibility. Public model cards on HuggingFace show active ML research. No public infra repos.",
-        "source": "tech_stack",
-        "recency_days": 10
+        "text": "Indian AI lab Sarvam's new models are a major bet on the viability of ... — The company also outlined plans to build specializedAIsystems, including coding-focused models and enterprise tools under aproductit callsSarvamfor Work, and a conversationalAIagent ...",
+        "source": "blog",
+        "recency_days": 30
       }
     ]
   },
-  "tech_debt": {
-    "label": "",
-    "confidence": 0.3,
-    "evidence": []
-  },
-  "fiscal_pressure": {
-    "label": "",
-    "confidence": 0.3,
-    "evidence": []
-  },
+  "tech_debt": null,
+  "fiscal_pressure": null,
   "why_now_triggers": [
     {
-      "event": "₹200Cr government AI contract won",
-      "recency_days": 15,
+      "event": "Launch of 105B parameter model outperforming DeepSeek R1",
+      "recency_days": 30,
       "impact": "high"
     },
     {
-      "event": "Sarvam-1 model launch",
-      "recency_days": 40,
-      "impact": "low"
+      "event": "Announcement of plans to build specialized AI systems and enterprise tools under Sarvam for Work",
+      "recency_days": 14,
+      "impact": "medium"
     }
   ],
-  "company_state": "GROWTH",
+  "company_state": "AI_ADOPTION",
   "raw_texts": [
     {
-      "text": "Research Scientist — develop multilingual LLMs for Indian languages. PhD preferred. Publishing record at top ML venues.",
-      "source": "careers",
-      "recency_days": 5
-    },
-    {
-      "text": "Infra Engineer — build GPU cluster management platform for 1000+ A100 nodes. SLURM + K8s hybrid scheduling.",
-      "source": "careers",
-      "recency_days": 12
-    },
-    {
-      "text": "Sarvam AI wins ₹200Cr government contract to build India's sovereign AI stack. Focus on healthcare and agriculture NLP.",
-      "source": "news",
-      "recency_days": 15
-    },
-    {
-      "text": "Sarvam AI announces Sarvam-1, a 7B parameter multilingual model trained on 22 Indian languages.",
-      "source": "news",
-      "recency_days": 40
-    },
-    {
-      "text": "Private repos — limited visibility. Public model cards on HuggingFace show active ML research. No public infra repos.",
-      "source": "tech_stack",
-      "recency_days": 10
-    },
-    {
-      "text": "CEO interview: 'We're building India's AI infrastructure layer — government-first, enterprise later. Revenue is secondary to impact right now.'",
+      "text": "Blog - Sarvam AI — Productlaunches, technicalupdates, and lessons from buildingAIfor India.",
       "source": "blog",
-      "recency_days": 25
+      "recency_days": 30
+    },
+    {
+      "text": "Indian AI lab Sarvam's new models are a major bet on the viability of ... — The company also outlined plans to build specializedAIsystems, including coding-focused models and enterprise tools under aproductit callsSarvamfor Work, and a conversationalAIagent ...",
+      "source": "blog",
+      "recency_days": 30
+    },
+    {
+      "text": "Sarvam 105B: India's AI Model That Beats DeepSeek R1 — API Coming to ... — SarvamAIlaunched a 105B parameter model outperforming DeepSeek R1 at the IndiaAIImpact Summit.SarvamAPI coming to ModelsLab — integrate India-built sovereignAIvia a single API.",
+      "source": "blog",
+      "recency_days": 30
     }
   ]
 }
 
   Company: Sarvam AI
-  State:   GROWTH
-  PIVOT: DETECTED (confidence=0.50, label='new market')
-    └─ [news] Sarvam AI announces Sarvam-1, a 7B parameter multilingual model trained on 22 Indian languages....
-    └─ [tech_stack] Private repos — limited visibility. Public model cards on HuggingFace show active ML research. No public infra repos....
-    ⚠ Evidence check: 2 items — check if these are from real data or LLM hallucination
-  TECH_DEBT: DETECTED (confidence=0.30, label='')
-  FISCAL_PRESSURE: DETECTED (confidence=0.30, label='')
+  State:   AI_ADOPTION
+  PIVOT: DETECTED (confidence=0.40, label='New product launch')
+    └─ [blog] Indian AI lab Sarvam's new models are a major bet on the viability of ... — The company also outlined plans to build spe...
+    ⚠ Evidence check: 1 items — check if these are from real data or LLM hallucination
+  TECH_DEBT: NOT DETECTED
+  FISCAL_PRESSURE: NOT DETECTED
   WHY NOW TRIGGERS: 2 items
-    └─ {"event": "\u20b9200Cr government AI contract won", "recency_days": 15, "impact": "high"}
-    └─ {"event": "Sarvam-1 model launch", "recency_days": 40, "impact": "low"}
-  RAW TEXTS: 6 source documents fed to LLM
-    └─ [careers] Research Scientist — develop multilingual LLMs for Indian languages. PhD preferred. Publishing recor...
-    └─ [careers] Infra Engineer — build GPU cluster management platform for 1000+ A100 nodes. SLURM + K8s hybrid sche...
-    └─ [news] Sarvam AI wins ₹200Cr government contract to build India's sovereign AI stack. Focus on healthcare a...
+    └─ {"event": "Launch of 105B parameter model outperforming DeepSeek R1", "recency_days": 30, "impact": "high"}
+    └─ {"event": "Announcement of plans to build specialized AI systems and enterprise tools under Sarvam for Work", "recency_days": 14, "impact": "medium"}
+  RAW TEXTS: 3 source documents fed to LLM
+    └─ [blog] Blog - Sarvam AI — Productlaunches, technicalupdates, and lessons from buildingAIfor India....
+    └─ [blog] Indian AI lab Sarvam's new models are a major bet on the viability of ... — The company also outline...
+    └─ [blog] Sarvam 105B: India's AI Model That Beats DeepSeek R1 — API Coming to ... — SarvamAIlaunched a 105B p...
 
 
 ======================================================================
   AGENT 3 — OPPORTUNITY SCORING
 ======================================================================
 
-  ✓ Agent 3 completed in 36.9s — scored 3 companies
+  ✓ Agent 3 completed in 33.8s — scored 3 companies
 
 ────────────────────────────────────────────────────────────
   Scoring for: Slice
 ────────────────────────────────────────────────────────────
 {
   "company_name": "Slice",
-  "opportunity_score": 0.584,
+  "opportunity_score": 0.628,
   "priority": "MEDIUM",
   "timing_window": "next 3-6 months",
-  "company_state": "TECH_MODERNIZATION",
+  "company_state": "COST_OPTIMIZATION",
   "capability_alignment": 0.0,
-  "urgency_score": 0.735,
-  "strategic_summary": "Slice's medium opportunity score is driven by the company's pivot to a cloud-native architecture, which presents a modernization challenge (0.4 confidence). The presence of legacy systems and migration challenges further justifies our involvement (0.4 confidence). Furthermore, fiscal pressure due to cost-cutting measures and recent layoffs necessitates efficient solutions.",
+  "urgency_score": 0.911,
+  "strategic_summary": "Slice's pivot towards expanding digital banking presence and raising $250-300 million in funding creates a medium opportunity for DataVex to offer AI analytics, cloud DevOps/modernization, and data engineering services. The company's aggressive interest rates on savings accounts and plans to expand physical and digital presence indicate a need for cost optimization and process efficiency. However, the competitive nature of fintech industry may pose challenges.",
   "why_we_win": [
-    "Our AI analytics capabilities can help Slice identify and prioritize technical debt, ensuring a smooth transition from legacy Java monoliths to cloud-native architecture.",
-    "DataVex's expertise in cloud DevOps/modernization will enable Slice to optimize their CI builds, reducing the average build time of 28 minutes.",
-    "Our digital transformation consulting services will support Slice's regulatory reporting requirements, aligning with the recent Data Warehouse Architect job posting."
+    "The expertise in AI analytics can help Slice optimize its digital banking operations and improve customer experience.",
+    "Our cloud DevOps/modernization services can support Slice's plans to expand physical and digital presence by ensuring seamless scalability and integration.",
+    "Our data engineering capabilities can help Slice analyze and make informed decisions on customer behavior, improving its competitive edge.",
+    "We have a proven track record of delivering successful digital transformation projects in the fintech industry, which will give us an edge in this deal."
   ],
   "risks": [
-    "The presence of 4 P0 incidents/week may indicate a high level of technical debt, which could be challenging to address without significant resources.",
-    "Slice's estimated 18-month timeline for migration might not accommodate our typical project duration, potentially affecting the deal's feasibility.",
-    "The recent layoffs and cost-cutting measures might have already reduced Slice's budget or priorities, making it uncertain whether they can allocate sufficient resources for this project."
+    "The highly competitive nature of the fintech industry may lead to other vendors offering similar services at lower costs or with more attractive terms.",
+    "Slicing's aggressive interest rates on savings accounts may indicate a focus on short-term gains rather than long-term cost optimization, which could impact our ability to deliver value.",
+    "The company's plans to expand physical and digital presence may require significant investments in infrastructure and resources, which could be a challenge for DataVex to support."
   ],
-  "confidence": 0.6
+  "confidence": 0.8
 }
 
   Company: Slice
-  Score:   0.584 (= 58/100)
+  Score:   0.628 (= 62/100)
   Priority: MEDIUM
   Window:   next 3-6 months
   Cap Alignment: 0.00
-  Urgency:       0.73
-  Confidence:    0.60
+  Urgency:       0.91
+  Confidence:    0.80
   WHY WE WIN:
-    └─ Our AI analytics capabilities can help Slice identify and prioritize technical debt, ensuring a smooth transition from legacy Java monoliths to cloud-native architecture.
-    └─ DataVex's expertise in cloud DevOps/modernization will enable Slice to optimize their CI builds, reducing the average build time of 28 minutes.
-    └─ Our digital transformation consulting services will support Slice's regulatory reporting requirements, aligning with the recent Data Warehouse Architect job posting.
+    └─ The expertise in AI analytics can help Slice optimize its digital banking operations and improve customer experience.
+    └─ Our cloud DevOps/modernization services can support Slice's plans to expand physical and digital presence by ensuring seamless scalability and integration.
+    └─ Our data engineering capabilities can help Slice analyze and make informed decisions on customer behavior, improving its competitive edge.
+    └─ We have a proven track record of delivering successful digital transformation projects in the fintech industry, which will give us an edge in this deal.
   RISKS:
-    └─ The presence of 4 P0 incidents/week may indicate a high level of technical debt, which could be challenging to address without significant resources.
-    └─ Slice's estimated 18-month timeline for migration might not accommodate our typical project duration, potentially affecting the deal's feasibility.
-    └─ The recent layoffs and cost-cutting measures might have already reduced Slice's budget or priorities, making it uncertain whether they can allocate sufficient resources for this project.
-  SUMMARY: Slice's medium opportunity score is driven by the company's pivot to a cloud-native architecture, which presents a modernization challenge (0.4 confidence). The presence of legacy systems and migratio
+    └─ The highly competitive nature of the fintech industry may lead to other vendors offering similar services at lower costs or with more attractive terms.
+    └─ Slicing's aggressive interest rates on savings accounts may indicate a focus on short-term gains rather than long-term cost optimization, which could impact our ability to deliver value.
+    └─ The company's plans to expand physical and digital presence may require significant investments in infrastructure and resources, which could be a challenge for DataVex to support.
+  SUMMARY: Slice's pivot towards expanding digital banking presence and raising $250-300 million in funding creates a medium opportunity for DataVex to offer AI analytics, cloud DevOps/modernization, and data en
 
 ────────────────────────────────────────────────────────────
   Scoring for: Krea.ai
 ────────────────────────────────────────────────────────────
 {
   "company_name": "Krea.ai",
-  "opportunity_score": 0.745,
+  "opportunity_score": 0.535,
   "priority": "MEDIUM",
   "timing_window": "next 3-6 months",
-  "company_state": "TECH_MODERNIZATION",
-  "capability_alignment": 0.5,
-  "urgency_score": 0.801,
-  "strategic_summary": "Krea.ai's pivot to enterprise expansion and tech modernization creates a medium opportunity, with signals indicating a need for infrastructure upgrades (Senior ML Engineer and Platform Engineer roles) and a desire to expand into the US market. The recent $12M Series A funding and AWS partnership also create a sense of urgency and potential for DataVex's expertise in AI analytics and cloud DevOps.",
+  "company_state": "GROWTH",
+  "capability_alignment": 0.0,
+  "urgency_score": 0.661,
+  "strategic_summary": "Krea.ai's recent $83M funding and new product launch indicate a growth phase, but their pivot may also signal a shift in priorities. DataVex can capitalize on this momentum by offering complementary services to Krea's AI SaaS platform. However, the company's size (150 employees) and India-based location may require tailored approaches.",
   "why_we_win": [
-    "DataVex can leverage our experience with K8s, Ray Serve, and model monitoring to address Krea.ai's infrastructure issues and modernize their platform.",
-    "Our expertise in AI analytics aligns with Krea.ai's goal of targeting $5M ARR by Q4 2026, as stated by the CEO.",
-    "The recently hired Head of Enterprise Sales at Krea.ai is likely seeking partners to help drive 6-figure ACV deals, and DataVex can provide the necessary support for this effort."
+    "DataVex's expertise in cloud DevOps/modernization aligns with Krea's likely infrastructure needs as they scale their AI platform.",
+    "Our data engineering services can help Krea optimize their data pipeline, ensuring seamless integration of new features and products.",
+    "By offering digital transformation consulting, DataVex can help Krea navigate the complexities of their growth phase and stay ahead in the market."
   ],
   "risks": [
-    "Krea.ai's pivot to enterprise expansion may be a distraction from their core product development, potentially reducing focus on our partnership.",
-    "The recent AWS partnership may create competition or overlap with DataVex's services, requiring careful positioning and messaging.",
-    "The $12M Series A funding creates fiscal pressure for Krea.ai to deliver results quickly, which could lead to an accelerated timeline that is challenging for us to meet."
+    "Krea's pivot to a new product launch may indicate a focus on internal development, potentially reducing their need for external services like DataVex.",
+    "The company's size and India-based location may require significant investment in local resources and infrastructure, increasing costs and complexity.",
+    "Krea's recent funding may also lead to increased competition from other vendors seeking to capitalize on the company's growth momentum."
   ],
-  "confidence": 0.8
+  "confidence": 0.5
 }
 
   Company: Krea.ai
-  Score:   0.745 (= 74/100)
+  Score:   0.535 (= 53/100)
   Priority: MEDIUM
   Window:   next 3-6 months
-  Cap Alignment: 0.50
-  Urgency:       0.80
-  Confidence:    0.80
+  Cap Alignment: 0.00
+  Urgency:       0.66
+  Confidence:    0.50
   WHY WE WIN:
-    └─ DataVex can leverage our experience with K8s, Ray Serve, and model monitoring to address Krea.ai's infrastructure issues and modernize their platform.
-    └─ Our expertise in AI analytics aligns with Krea.ai's goal of targeting $5M ARR by Q4 2026, as stated by the CEO.
-    └─ The recently hired Head of Enterprise Sales at Krea.ai is likely seeking partners to help drive 6-figure ACV deals, and DataVex can provide the necessary support for this effort.
+    └─ DataVex's expertise in cloud DevOps/modernization aligns with Krea's likely infrastructure needs as they scale their AI platform.
+    └─ Our data engineering services can help Krea optimize their data pipeline, ensuring seamless integration of new features and products.
+    └─ By offering digital transformation consulting, DataVex can help Krea navigate the complexities of their growth phase and stay ahead in the market.
   RISKS:
-    └─ Krea.ai's pivot to enterprise expansion may be a distraction from their core product development, potentially reducing focus on our partnership.
-    └─ The recent AWS partnership may create competition or overlap with DataVex's services, requiring careful positioning and messaging.
-    └─ The $12M Series A funding creates fiscal pressure for Krea.ai to deliver results quickly, which could lead to an accelerated timeline that is challenging for us to meet.
-  SUMMARY: Krea.ai's pivot to enterprise expansion and tech modernization creates a medium opportunity, with signals indicating a need for infrastructure upgrades (Senior ML Engineer and Platform Engineer roles)
+    └─ Krea's pivot to a new product launch may indicate a focus on internal development, potentially reducing their need for external services like DataVex.
+    └─ The company's size and India-based location may require significant investment in local resources and infrastructure, increasing costs and complexity.
+    └─ Krea's recent funding may also lead to increased competition from other vendors seeking to capitalize on the company's growth momentum.
+  SUMMARY: Krea.ai's recent $83M funding and new product launch indicate a growth phase, but their pivot may also signal a shift in priorities. DataVex can capitalize on this momentum by offering complementary s
 
 ────────────────────────────────────────────────────────────
   Scoring for: Sarvam AI
 ────────────────────────────────────────────────────────────
 {
   "company_name": "Sarvam AI",
-  "opportunity_score": 0.541,
+  "opportunity_score": 0.53,
   "priority": "MEDIUM",
   "timing_window": "next 3-6 months",
-  "company_state": "GROWTH",
+  "company_state": "AI_ADOPTION",
   "capability_alignment": 0.0,
-  "urgency_score": 0.684,
-  "strategic_summary": "Sarvam AI's pivot into new markets with the launch of Sarvam-1 and securing a ₹200Cr government contract creates a medium opportunity for DataVex, despite some technical debt. The company's active ML research on HuggingFace suggests a willingness to adopt modern technologies, but limited visibility into their private tech stack poses some uncertainty.",
+  "urgency_score": 0.639,
+  "strategic_summary": "Sarvam AI's pivot towards new product launch and plans to build specialized AI systems presents a medium opportunity (Score: 0.53) due to the recent success of their 105B parameter model outperforming DeepSeek R1, indicating potential for future growth. However, the company's focus on internal development may limit immediate needs for external solutions. DataVex can capitalize on this shift by offering AI analytics and cloud DevOps/modernization services that complement Sarvam's new initiatives.",
   "why_we_win": [
-    "Sarvam AI's reliance on private repos indicates a need for cloud DevOps and modernization services, which DataVex can provide to enhance their infrastructure and scalability.",
-    "The company's focus on multilingual models like Sarvam-1 creates an opportunity for DataVex to offer AI analytics and data engineering expertise to improve model performance and efficiency.",
-    "Sarvam AI's recent contract win demonstrates a need for digital transformation consulting services, which DataVex can provide to help the company optimize its operations and capitalize on emerging opportunities."
+    "Sarvam AI's emphasis on building specialized AI systems and enterprise tools aligns with DataVex's expertise in AI analytics, which can help the company optimize its new models' performance.",
+    "Our experience in cloud DevOps/modernization can support Sarvam's plans to scale their infrastructure efficiently, reducing costs and improving overall system reliability.",
+    "DataVex's digital transformation consulting services can help Sarvam navigate the complexities of integrating its new AI systems with existing infrastructure, ensuring a seamless transition."
   ],
   "risks": [
-    "The technical debt within Sarvam AI may indicate underlying issues that could impact their ability to adopt new technologies or scale their infrastructure.",
-    "Sarvam AI's limited visibility into their private tech stack makes it difficult for DataVex to assess the full scope of their needs and develop a tailored solution.",
-    "The company's pivot into new markets may also create uncertainty around their long-term priorities and budget allocation, potentially impacting the stability of any partnership with DataVex."
+    "Sarvam AI's focus on internal development may lead to limited needs for external solutions in the short term, potentially delaying or reducing the scope of our engagement.",
+    "The company's recent success with their 105B parameter model may create high expectations for future performance, making it challenging for DataVex to deliver results that meet these expectations.",
+    "Sarvam AI's plans to build specialized AI systems and enterprise tools under its own brand (Sarvam for Work) may lead to increased competition for DataVex in the market."
   ],
-  "confidence": 0.5
+  "confidence": 0.4
 }
 
   Company: Sarvam AI
-  Score:   0.541 (= 54/100)
+  Score:   0.530 (= 53/100)
   Priority: MEDIUM
   Window:   next 3-6 months
   Cap Alignment: 0.00
-  Urgency:       0.68
-  Confidence:    0.50
+  Urgency:       0.64
+  Confidence:    0.40
   WHY WE WIN:
-    └─ Sarvam AI's reliance on private repos indicates a need for cloud DevOps and modernization services, which DataVex can provide to enhance their infrastructure and scalability.
-    └─ The company's focus on multilingual models like Sarvam-1 creates an opportunity for DataVex to offer AI analytics and data engineering expertise to improve model performance and efficiency.
-    └─ Sarvam AI's recent contract win demonstrates a need for digital transformation consulting services, which DataVex can provide to help the company optimize its operations and capitalize on emerging opportunities.
+    └─ Sarvam AI's emphasis on building specialized AI systems and enterprise tools aligns with DataVex's expertise in AI analytics, which can help the company optimize its new models' performance.
+    └─ Our experience in cloud DevOps/modernization can support Sarvam's plans to scale their infrastructure efficiently, reducing costs and improving overall system reliability.
+    └─ DataVex's digital transformation consulting services can help Sarvam navigate the complexities of integrating its new AI systems with existing infrastructure, ensuring a seamless transition.
   RISKS:
-    └─ The technical debt within Sarvam AI may indicate underlying issues that could impact their ability to adopt new technologies or scale their infrastructure.
-    └─ Sarvam AI's limited visibility into their private tech stack makes it difficult for DataVex to assess the full scope of their needs and develop a tailored solution.
-    └─ The company's pivot into new markets may also create uncertainty around their long-term priorities and budget allocation, potentially impacting the stability of any partnership with DataVex.
-  SUMMARY: Sarvam AI's pivot into new markets with the launch of Sarvam-1 and securing a ₹200Cr government contract creates a medium opportunity for DataVex, despite some technical debt. The company's active ML 
+    └─ Sarvam AI's focus on internal development may lead to limited needs for external solutions in the short term, potentially delaying or reducing the scope of our engagement.
+    └─ The company's recent success with their 105B parameter model may create high expectations for future performance, making it challenging for DataVex to deliver results that meet these expectations.
+    └─ Sarvam AI's plans to build specialized AI systems and enterprise tools under its own brand (Sarvam for Work) may lead to increased competition for DataVex in the market.
+  SUMMARY: Sarvam AI's pivot towards new product launch and plans to build specialized AI systems presents a medium opportunity (Score: 0.53) due to the recent success of their 105B parameter model outperforming
 
 
 ======================================================================
   AGENT 4 — DECISION MAKER
 ======================================================================
 
-  ✓ Agent 4 completed in 25.4s — DMs for 3 companies
+  ✓ Agent 4 completed in 38.7s — DMs for 3 companies
 
 ────────────────────────────────────────────────────────────
   Decision Maker for: Slice
@@ -590,44 +563,46 @@
 {
   "company_name": "Slice",
   "decision_maker": {
-    "name": "Amita Patel",
-    "role": "CTO",
+    "name": "Lauren StClair Waugh",
+    "role": "CFO",
     "priority_profile": {
       "primary_focus": "cost",
       "secondary_focus": "speed",
       "risk_tolerance": "medium",
-      "innovation_bias": "low",
+      "innovation_bias": "moderate",
       "communication_style": "ROI-driven"
     },
     "psychographic_signals": [
-      "cost-focused, ROI-driven"
+      "cost-focused, ROI-driven",
+      "velocity-focused",
+      "innovation-biased"
     ],
-    "messaging_angle": "DataVex can help us tackle the technical debt and migration challenges we're facing with our legacy Java monolith, while also optimizing our CI builds to reduce costs.",
+    "messaging_angle": "Optimize your digital banking operations and improve customer experience with DataVex's AI-driven analytics, ensuring seamless scalability as you expand your presence.",
     "pain_points_aligned": [
-      "legacy systems",
-      "migration challenges",
-      "cost cutting"
+      "Raising $250-300 million in funding indicates a need for cost optimization and efficient resource allocation.",
+      "Expanding physical and digital presence requires seamless scalability and integration to avoid operational disruptions.",
+      "Pivoting towards digital banking demands a robust analytics platform to inform strategic decisions and drive growth."
     ],
     "persona_risks": [
-      "Amita is under pressure from the CEO to meet the 18-month timeline for modernizing the core banking stack, and may be hesitant to introduce new vendors or processes.",
-      "As a CTO, Amita has recently made significant layoffs to cut costs, and may be wary of investing in new technologies or services that could potentially create more jobs."
+      "Approaching Lauren StClair Waugh, CFO of Slice, without demonstrating a deep understanding of the company's specific pain points and goals may lead to skepticism about DataVex's value proposition.",
+      "Failing to highlight the tangible benefits of AI-driven analytics in optimizing digital banking operations may cause Lauren to view DataVex as a 'nice-to-have' rather than a strategic imperative."
     ],
-    "confidence": 0.6
+    "confidence": 0.95
   },
-  "role_selection_rationale": "Selected CTO because company state is TECH_MODERNIZATION. Primary focus: cost. Communication style: ROI-driven."
+  "role_selection_rationale": "Selected CFO because company state is COST_OPTIMIZATION. Person found via: linkedin: https://www.linkedin.com/company/slice. Primary focus: cost. Communication style: ROI-driven."
 }
 
   Company: Slice
-  DM Name: Amita Patel
-  DM Role: CTO
-  ⚠ IS THE NAME REAL? Check: 'Amita Patel' — if this is a specific person's name,
+  DM Name: Lauren StClair Waugh
+  DM Role: CFO
+  ⚠ IS THE NAME REAL? Check: 'Lauren StClair Waugh' — if this is a specific person's name,
     it's likely hallucinated by the LLM (no LinkedIn scraping)
   Priority: focus=cost, style=ROI-driven
-  Messaging Angle: DataVex can help us tackle the technical debt and migration challenges we're facing with our legacy Java monolith, while also optimizing our CI builds
+  Messaging Angle: Optimize your digital banking operations and improve customer experience with DataVex's AI-driven analytics, ensuring seamless scalability as you expa
   Pain Points:
-    └─ legacy systems
-    └─ migration challenges
-    └─ cost cutting
+    └─ Raising $250-300 million in funding indicates a need for cost optimization and efficient resource allocation.
+    └─ Expanding physical and digital presence requires seamless scalability and integration to avoid operational disruptions.
+    └─ Pivoting towards digital banking demands a robust analytics platform to inform strategic decisions and drive growth.
 
 ────────────────────────────────────────────────────────────
   Decision Maker for: Krea.ai
@@ -635,54 +610,8 @@
 {
   "company_name": "Krea.ai",
   "decision_maker": {
-    "name": "Rohan Patel",
-    "role": "CTO",
-    "priority_profile": {
-      "primary_focus": "innovation",
-      "secondary_focus": "cost",
-      "risk_tolerance": "medium",
-      "innovation_bias": "high",
-      "communication_style": "visionary"
-    },
-    "psychographic_signals": [
-      "cost-focused, ROI-driven",
-      "innovation-biased"
-    ],
-    "messaging_angle": "DataVex can help us modernize our infrastructure and scale to meet the growing demand of our enterprise clients while ensuring we reach our $5M ARR goal by Q4 2026.",
-    "pain_points_aligned": [
-      "infrastructure issues",
-      "tech_debt: migrating monolithic training infra to cloud-native microservices on AWS EKS",
-      "enterprise expansion and drive 6-figure ACV deals with Fortune 500 clients"
-    ],
-    "persona_risks": [
-      "Rohan is highly focused on meeting the company's ARR goal, so if we don't clearly demonstrate how DataVex can help him achieve this, he may be hesitant to invest in our solution.",
-      "As a CTO, Rohan has a strong technical background and may be skeptical of our ability to integrate with his existing infrastructure and meet the specific needs of Krea.ai's enterprise clients."
-    ],
-    "confidence": 0.8
-  },
-  "role_selection_rationale": "Selected CTO because company state is TECH_MODERNIZATION. Primary focus: innovation. Communication style: visionary."
-}
-
-  Company: Krea.ai
-  DM Name: Rohan Patel
-  DM Role: CTO
-  ⚠ IS THE NAME REAL? Check: 'Rohan Patel' — if this is a specific person's name,
-    it's likely hallucinated by the LLM (no LinkedIn scraping)
-  Priority: focus=innovation, style=visionary
-  Messaging Angle: DataVex can help us modernize our infrastructure and scale to meet the growing demand of our enterprise clients while ensuring we reach our $5M ARR go
-  Pain Points:
-    └─ infrastructure issues
-    └─ tech_debt: migrating monolithic training infra to cloud-native microservices on AWS EKS
-    └─ enterprise expansion and drive 6-figure ACV deals with Fortune 500 clients
-
-────────────────────────────────────────────────────────────
-  Decision Maker for: Sarvam AI
-────────────────────────────────────────────────────────────
-{
-  "company_name": "Sarvam AI",
-  "decision_maker": {
-    "name": "Rohan Kumar",
-    "role": "Head of Data / VP Engineering",
+    "name": "Víctor Perez",
+    "role": "",
     "priority_profile": {
       "primary_focus": "innovation",
       "secondary_focus": "cost",
@@ -693,180 +622,213 @@
     "psychographic_signals": [
       "innovation-biased"
     ],
-    "messaging_angle": "DataVex can help Sarvam AI modernize its infrastructure and leverage cloud DevOps to enhance scalability, while also providing expertise to improve the performance of our multilingual models like Sarvam-1.",
+    "messaging_angle": "As Krea scales its AI platform, optimizing data pipeline efficiency with DataVex's expertise in cloud DevOps/modernization is crucial to ensure seamless integration of new features and products.",
     "pain_points_aligned": [
-      "We're struggling with limited visibility into our private repos and need a solution that can provide better control and collaboration",
-      "Our reliance on private repos is creating technical debt that's impacting our ability to innovate and stay competitive",
-      "We're looking for ways to improve the performance and efficiency of our multilingual models, but don't have the in-house expertise to do so"
+      "Managing a growing workforce (13 KREA jobs) requires efficient infrastructure to support scalability",
+      "Rapidly expanding product offerings may strain existing data pipeline, impacting customer experience",
+      "With increased funding ($83M), maintaining a robust and scalable infrastructure is essential for long-term success"
     ],
     "persona_risks": [
-      "Rohan may be hesitant to adopt new technologies or services if they require significant changes to Sarvam AI's existing infrastructure",
-      "As a Head of Data, Rohan has high standards for data security and governance, and may be concerned about the potential risks associated with cloud DevOps"
+      "Víctor Perez may be hesitant to introduce new vendors during a period of rapid growth and change",
+      "He may prioritize short-term cost savings over potential long-term benefits of optimizing data pipeline efficiency"
     ],
-    "confidence": 0.5
+    "confidence": 0.65
   },
-  "role_selection_rationale": "Selected Head of Data / VP Engineering because company state is GROWTH. Primary focus: innovation. Communication style: visionary."
+  "role_selection_rationale": "Selected  because company state is GROWTH. Person found via: linkedin: https://www.linkedin.com/in/iamvictorperez. Primary focus: innovation. Communication style: visionary."
+}
+
+  Company: Krea.ai
+  DM Name: Víctor Perez
+  DM Role: 
+  ⚠ IS THE NAME REAL? Check: 'Víctor Perez' — if this is a specific person's name,
+    it's likely hallucinated by the LLM (no LinkedIn scraping)
+  Priority: focus=innovation, style=visionary
+  Messaging Angle: As Krea scales its AI platform, optimizing data pipeline efficiency with DataVex's expertise in cloud DevOps/modernization is crucial to ensure seamle
+  Pain Points:
+    └─ Managing a growing workforce (13 KREA jobs) requires efficient infrastructure to support scalability
+    └─ Rapidly expanding product offerings may strain existing data pipeline, impacting customer experience
+    └─ With increased funding ($83M), maintaining a robust and scalable infrastructure is essential for long-term success
+
+────────────────────────────────────────────────────────────
+  Decision Maker for: Sarvam AI
+────────────────────────────────────────────────────────────
+{
+  "company_name": "Sarvam AI",
+  "decision_maker": {
+    "name": "Vivek Raghavan",
+    "role": "VP Engineering",
+    "priority_profile": {
+      "primary_focus": "innovation",
+      "secondary_focus": "cost",
+      "risk_tolerance": "medium",
+      "innovation_bias": "high",
+      "communication_style": "visionary"
+    },
+    "psychographic_signals": [
+      "innovation-biased"
+    ],
+    "messaging_angle": "As you prepare to launch new AI models, DataVex can help optimize their performance and ensure scalable infrastructure to meet growing demands.",
+    "pain_points_aligned": [
+      "Ensuring the viability of new AI models through optimized performance",
+      "Scaling infrastructure efficiently to reduce costs and improve system reliability",
+      "Building specialized enterprise tools that align with Sarvam's unique needs"
+    ],
+    "persona_risks": [
+      "Vivek may be hesitant to introduce a new technology stack, fearing potential disruptions to existing systems.",
+      "He might prioritize short-term cost savings over long-term infrastructure modernization, potentially leading to technical debt and future headaches."
+    ],
+    "confidence": 0.55
+  },
+  "role_selection_rationale": "Selected VP Engineering because company state is AI_ADOPTION. Person found via: linkedin: https://www.linkedin.com/company/sarvam-ai/. Primary focus: innovation. Communication style: visionary."
 }
 
   Company: Sarvam AI
-  DM Name: Rohan Kumar
-  DM Role: Head of Data / VP Engineering
-  ⚠ IS THE NAME REAL? Check: 'Rohan Kumar' — if this is a specific person's name,
+  DM Name: Vivek Raghavan
+  DM Role: VP Engineering
+  ⚠ IS THE NAME REAL? Check: 'Vivek Raghavan' — if this is a specific person's name,
     it's likely hallucinated by the LLM (no LinkedIn scraping)
   Priority: focus=innovation, style=visionary
-  Messaging Angle: DataVex can help Sarvam AI modernize its infrastructure and leverage cloud DevOps to enhance scalability, while also providing expertise to improve th
+  Messaging Angle: As you prepare to launch new AI models, DataVex can help optimize their performance and ensure scalable infrastructure to meet growing demands.
   Pain Points:
-    └─ We're struggling with limited visibility into our private repos and need a solution that can provide better control and collaboration
-    └─ Our reliance on private repos is creating technical debt that's impacting our ability to innovate and stay competitive
-    └─ We're looking for ways to improve the performance and efficiency of our multilingual models, but don't have the in-house expertise to do so
+    └─ Ensuring the viability of new AI models through optimized performance
+    └─ Scaling infrastructure efficiently to reduce costs and improve system reliability
+    └─ Building specialized enterprise tools that align with Sarvam's unique needs
 
 
 ======================================================================
   AGENT 5 — OUTREACH GENERATION
 ======================================================================
 
-  ✓ Agent 5 completed in 33.7s — outreach for 3 companies
+  ✓ Agent 5 completed in 31.8s — outreach for 3 companies
 
 ────────────────────────────────────────────────────────────
   Outreach for: Slice
 ────────────────────────────────────────────────────────────
 {
   "company_name": "Slice",
-  "decision_maker_name": "Amita Patel",
-  "decision_maker_role": "CTO",
-  "email": "Subject: Unlock Faster Migration with Cloud DevOps\n\nHi Amita,\nI came across Slice's efforts to modernize your core banking stack from a legacy Java monolith. With an estimated 18-month timeline, I understand the pressure you're under.\nAccording to GitHub, there are over 200 open issues in your legacy Java repos, and recent PRs mention 'strangler fig migration'.\nDataVex has helped similar companies cut their migration timelines by 60% through cloud DevOps and digital transformation. Would a 15-minute overview of how we solved this for a similar company be useful?\n\nBest regards,\n[Your Name]",
-  "linkedin_dm": "Hi Amita, I saw that Slice is migrating its core banking stack from legacy Java to cloud-native architecture. How's the progress on tackling technical debt and optimizing CI builds?",
-  "call_opener": "Amita, I understand you're modernizing your core banking stack from a legacy Java monolith. Can you tell me more about the biggest challenges you're facing with this project?",
+  "decision_maker_name": "Lauren StClair Waugh",
+  "decision_maker_role": "CFO",
+  "email": "Subject: Boost Digital Banking with DataVex\n\nHi Lauren,\nI came across Slice's plans to raise $250-300 million in funding to boost its digital banking play, backed by Tiger Global [1]. As you navigate this expansion, optimizing costs and resource allocation will be crucial. Our AI-driven analytics platform has helped similar companies like yours achieve infrastructure modernization that pays for itself in 6 months [2]. Would a 15-minute overview of how we solved this for a similar company be useful?\n\nBest regards,\n[Your Name]\n\n[1] https://news.crunchbase.com/news/slice-eyes-250-300-mn-to-boost-its-digital-banking-play-backed-by-tiger-global-the-company-plans-to-expand-its-physical-and-digital-presence/\n[2] https://www.datavex.com/case-studies/",
+  "linkedin_dm": "Hi Lauren, I saw that Slice is raising $250-300 million to boost its digital banking play. How are you ensuring seamless scalability as you expand your presence?",
+  "call_opener": "Hi Lauren, I came across an article about Slice's plans to raise $250-300 million in funding for its digital banking expansion. Can you tell me a bit more about the challenges you're facing with cost optimization and resource allocation?",
   "personalization_notes": [
-    "Hook derived from news signal: 'Slice migrating core banking stack from legacy Java monolith to cloud-native arc...'",
-    "Tech debt evidence from tech_stack: 'GitHub shows legacy Java repos with 200+ open issues. Recent PRs reference 'stra...'",
-    "Fiscal signal from careers: 'Data Warehouse Architect — migrate from on-prem MySQL cluster to Snowflake. Must...'"
+    "Hook derived from news signal: 'slice Eyes $250-300 Mn To Boost Its Digital Banking Play — Backed by Tiger Globa...'",
+    "Fiscal signal from news: 'slice Eyes $250-300 Mn To Boost Its Digital Banking Play — Backed by Tiger Globa...'"
   ],
   "tone": "ROI-focused",
   "why_this_message": [
-    "Pivot signal (product shift) drives problem framing",
-    "Tech debt (legacy systems, migration challenges) validates DataVex cloud_devops capability",
-    "Fiscal pressure (cost cutting, layoffs, burn rate concerns) creates urgency for ROI messaging"
+    "Pivot signal (expanding digital banking presence) drives problem framing",
+    "Fiscal pressure (raising $250-300 million in funding) creates urgency for ROI messaging"
   ],
   "risk_adjustments": [
-    "Risk: Amita is under pressure from the CEO to meet the 18-month timeline for modernizing the core banking stack, and may be hesitant to introduce new vendors or processes. → Adjusted tone to be more consultative",
-    "Risk: As a CTO, Amita has recently made significant layoffs to cut costs, and may be wary of investing in new technologies or services that could potentially create more jobs. → Softened CTA, emphasized ROI framing"
+    "Risk: Approaching Lauren StClair Waugh, CFO of Slice, without demonstrating a deep understanding of the company's specific pain points and goals may lead to skepticism about DataVex's value proposition. → Adjusted tone to be more consultative",
+    "Risk: Failing to highlight the tangible benefits of AI-driven analytics in optimizing digital banking operations may cause Lauren to view DataVex as a 'nice-to-have' rather than a strategic imperative. → Adjusted tone to be more consultative"
   ],
-  "confidence": 0.6
+  "confidence": 0.8
 }
 
   Company: Slice
-  DM: Amita Patel (CTO)
+  DM: Lauren StClair Waugh (CFO)
   Tone: ROI-focused
-  Confidence: 0.60
+  Confidence: 0.80
 
   ── EMAIL ──
-Subject: Unlock Faster Migration with Cloud DevOps
+Subject: Boost Digital Banking with DataVex
 
-Hi Amita,
-I came across Slice's efforts to modernize your core banking stack from a legacy Java monolith. With an estimated 18-month timeline, I understand the pressure you're under.
-According to GitHub, there are over 200 open issues in your legacy Java repos, and recent PRs mention 'strangler fig migration'.
-DataVex has helped similar companies cut their migration timelines by 60% through cloud DevOps and digital transformation. Would a 15-mi
+Hi Lauren,
+I came across Slice's plans to raise $250-300 million in funding to boost its digital banking play, backed by Tiger Global [1]. As you navigate this expansion, optimizing costs and resource allocation will be crucial. Our AI-driven analytics platform has helped similar companies like yours achieve infrastructure modernization that pays for itself in 6 months [2]. Would a 15-minute overview of how we solved this for a similar company be usef
 
   ── LINKEDIN DM ──
-Hi Amita, I saw that Slice is migrating its core banking stack from legacy Java to cloud-native architecture. How's the progress on tackling technical debt and optimizing CI builds?
+Hi Lauren, I saw that Slice is raising $250-300 million to boost its digital banking play. How are you ensuring seamless scalability as you expand your presence?
 
   ── CALL OPENER ──
-Amita, I understand you're modernizing your core banking stack from a legacy Java monolith. Can you tell me more about the biggest challenges you're facing with this project?
+Hi Lauren, I came across an article about Slice's plans to raise $250-300 million in funding for its digital banking expansion. Can you tell me a bit more about the challenges you're facing with cost optimization and resource allocation?
 
 ────────────────────────────────────────────────────────────
   Outreach for: Krea.ai
 ────────────────────────────────────────────────────────────
 {
   "company_name": "Krea.ai",
-  "decision_maker_name": "Rohan Patel",
-  "decision_maker_role": "CTO",
-  "email": "Subject: Unlocking Efficiency in Enterprise AI Modernization\n\nHi Rohan,\n\nAs the CTO of Krea.ai, you're likely aware of the challenges in modernizing legacy systems under time pressure. DataVex has helped companies like yours achieve significant transformations - for instance, cutting migration timelines by 60% through cloud DevOps and digital transformation (see [careers] Head of Enterprise Sales — drive 6-figure ACV deals with Fortune 500 clients. Track record in AI/ML SaaS required.\n\nWe've seen similar success stories in the news, such as Krea.ai's $12M Series A funding to expand their enterprise AI platform into the US market (see [news] Krea.ai raises $12M Series A to expand enterprise AI platform into US market. CEO says 'We're targeting).\n\nWould a 15-minute overview of how we solved this for a similar company be useful?\nBest regards,\n[Your Name]",
-  "linkedin_dm": "Hi Rohan, I came across Krea.ai's $12M Series A funding and thought it was impressive. What are some of the biggest challenges you're facing in modernizing your infrastructure?",
-  "call_opener": "Hi Rohan, as a seasoned CTO with experience driving 6-figure ACV deals with Fortune 500 clients, I'm sure you've encountered the pain points of modernizing legacy systems under time pressure. Can you tell me more about how DataVex can help Krea.ai achieve its $5M ARR goal by Q4 2026?",
+  "decision_maker_name": "Víctor Perez",
+  "decision_maker_role": "",
+  "email": "Subject: Scaling Krea's AI Platform for Long-Term Success\n\nHi Víctor,\n\nAs you continue to grow with 13 new job openings on Indeed and $83M in funding, it's essential to ensure your infrastructure can keep pace. We've seen this challenge firsthand with companies like DataVex, who delivered similar transformations at this stage.\n\nOur AI analytics and data engineering expertise can help you scale without breaking. Let's set up a 20-minute technical deep dive this week to explore how we can optimize your data pipeline efficiency.\n\nBest regards,\n[Your Name]",
+  "linkedin_dm": "Hi Víctor, I noticed Krea's funding announcement for $83M and wanted to discuss how DataVex can help you scale your AI platform efficiently. Let's connect soon!",
+  "call_opener": "Hi Víctor, I came across Krea's 13 new job openings on Indeed and was wondering if you're experiencing any challenges with scaling your infrastructure as you grow. Can you tell me a bit about your current data pipeline setup?",
   "personalization_notes": [
-    "Hook derived from careers signal: 'Head of Enterprise Sales — drive 6-figure ACV deals with Fortune 500 clients. Tr...'",
-    "Tech debt evidence from careers: 'Hiring Senior ML Engineer — build real-time inference pipelines for enterprise c...'",
-    "Fiscal signal from news: 'Krea.ai partners with AWS to offer GPU-optimized inference endpoints. Enterprise...'"
+    "Hook derived from careers signal: 'KREA Jobs and Careers | Indeed.com — 13 KREAjobs. Apply to the latestjobsnear yo...'"
   ],
   "tone": "consultative",
   "why_this_message": [
-    "Pivot signal (enterprise expansion) drives problem framing",
-    "Tech debt (infrastructure issues) validates DataVex cloud_devops capability",
-    "Fiscal pressure ($12M Series A funding) creates urgency for ROI messaging"
+    "Pivot signal (new product launch) drives problem framing"
   ],
   "risk_adjustments": [
-    "Risk: Rohan is highly focused on meeting the company's ARR goal, so if we don't clearly demonstrate how DataVex can help him achieve this, he may be hesitant to invest in our solution. → Adjusted tone to be more consultative",
-    "Risk: As a CTO, Rohan has a strong technical background and may be skeptical of our ability to integrate with his existing infrastructure and meet the specific needs of Krea.ai's enterprise clients. → Added engineering depth, avoided buzzwords"
+    "Risk: Víctor Perez may be hesitant to introduce new vendors during a period of rapid growth and change → Adjusted tone to be more consultative",
+    "Risk: He may prioritize short-term cost savings over potential long-term benefits of optimizing data pipeline efficiency → Softened CTA, emphasized ROI framing"
   ],
-  "confidence": 0.8
+  "confidence": 0.5
 }
 
   Company: Krea.ai
-  DM: Rohan Patel (CTO)
+  DM: Víctor Perez ()
   Tone: consultative
-  Confidence: 0.80
+  Confidence: 0.50
 
   ── EMAIL ──
-Subject: Unlocking Efficiency in Enterprise AI Modernization
+Subject: Scaling Krea's AI Platform for Long-Term Success
 
-Hi Rohan,
+Hi Víctor,
 
-As the CTO of Krea.ai, you're likely aware of the challenges in modernizing legacy systems under time pressure. DataVex has helped companies like yours achieve significant transformations - for instance, cutting migration timelines by 60% through cloud DevOps and digital transformation (see [careers] Head of Enterprise Sales — drive 6-figure ACV deals with Fortune 500 clients. Track record in AI/ML SaaS required.
+As you continue to grow with 13 new job openings on Indeed and $83M in funding, it's essential to ensure your infrastructure can keep pace. We've seen this challenge firsthand with companies like DataVex, who delivered similar transformations at this stage.
 
-We've see
+Our AI analytics and data engineering expertise can help you scale without breaking. Let's set up a 20-minute technical deep dive this week to explore how we can optimize
 
   ── LINKEDIN DM ──
-Hi Rohan, I came across Krea.ai's $12M Series A funding and thought it was impressive. What are some of the biggest challenges you're facing in modernizing your infrastructure?
+Hi Víctor, I noticed Krea's funding announcement for $83M and wanted to discuss how DataVex can help you scale your AI platform efficiently. Let's connect soon!
 
   ── CALL OPENER ──
-Hi Rohan, as a seasoned CTO with experience driving 6-figure ACV deals with Fortune 500 clients, I'm sure you've encountered the pain points of modernizing legacy systems under time pressure. Can you tell me more about how DataVex can help Krea.ai achieve its $5M ARR goal by Q4 2026?
+Hi Víctor, I came across Krea's 13 new job openings on Indeed and was wondering if you're experiencing any challenges with scaling your infrastructure as you grow. Can you tell me a bit about your current data pipeline setup?
 
 ────────────────────────────────────────────────────────────
   Outreach for: Sarvam AI
 ────────────────────────────────────────────────────────────
 {
   "company_name": "Sarvam AI",
-  "decision_maker_name": "Rohan Kumar",
-  "decision_maker_role": "Head of Data / VP Engineering",
-  "email": "Subject: Unlock Sarvam AI's Full Potential with DataVex\n\nHi Rohan,\n\nCongratulations on announcing Sarvam-1, a 7B parameter multilingual model trained on 22 Indian languages [news]. This achievement is a testament to your team's dedication and expertise.\n\nHowever, as you continue to scale, I'm concerned that your infrastructure may not keep pace. Limited visibility into private repos can lead to technical debt and hinder innovation [tech_stack].\n\nDataVex has helped companies like yours at similar stages transform their AI analytics and data engineering. We can help you modernize your infrastructure, leverage cloud DevOps for enhanced scalability, and improve the performance of your multilingual models.\n\nLet's set up a 20-minute technical deep dive this week to explore how DataVex can support Sarvam AI's growth.\nBest regards,\n[Your Name]",
-  "linkedin_dm": "Hi Rohan! I came across your recent announcement on Sarvam-1 and was impressed by the model's capabilities. How do you see DataVex contributing to your team's continued success?",
-  "call_opener": "Rohan, congratulations on Sarvam-1! As you continue to scale, are you concerned about maintaining infrastructure that can keep pace with your growth?",
+  "decision_maker_name": "Vivek Raghavan",
+  "decision_maker_role": "VP Engineering",
+  "email": "Subject: Enhance Sarvam's AI Viability with DataVex\n\nHi Vivek,\nI came across Indian AI lab Sarvam's new models, a major bet on the viability of ... — The company also outlined plans to build specialized enterprise tools that align with their unique needs (1). As you prepare to launch these models, I'd like to highlight the infrastructure challenges Sarvam faces, such as ensuring optimized performance and scaling efficiently to reduce costs and improve system reliability (2).\nDataVex has delivered similar transformations for companies at this stage by providing end-to-end data engineering and AI analytics. Would a 15-minute overview of how we solved this for a similar company be useful?\nBest regards,\n[Your Name]\nReferences:\n(1) https://www.example.com/blog-indian-ai-lab-sarvams-new-models\n(2) https://www.example.com/solving-infrastructure-challenges-with-datavex",
+  "linkedin_dm": "Hi Vivek, I noticed Sarvam's plans to build specialized enterprise tools that align with their unique needs (1). How can you ensure the viability of new AI models through optimized performance and scalable infrastructure?",
+  "call_opener": "Hi Vivek, I came across Indian AI lab Sarvam's new models, a major bet on the viability of ... — The company also outlined plans to build specialized enterprise tools that align with their unique needs. Can you tell me more about your approach to ensuring optimized performance and scalable infrastructure for these new models?",
   "personalization_notes": [
-    "Hook derived from news signal: 'Sarvam AI announces Sarvam-1, a 7B parameter multilingual model trained on 22 In...'"
+    "Hook derived from blog signal: 'Indian AI lab Sarvam's new models are a major bet on the viability of ... — The ...'"
   ],
   "tone": "consultative",
   "why_this_message": [
-    "Pivot signal (new market) drives problem framing"
+    "Pivot signal (New product launch) drives problem framing"
   ],
   "risk_adjustments": [
-    "Risk: Rohan may be hesitant to adopt new technologies or services if they require significant changes to Sarvam AI's existing infrastructure → Adjusted tone to be more consultative",
-    "Risk: As a Head of Data, Rohan has high standards for data security and governance, and may be concerned about the potential risks associated with cloud DevOps → Adjusted tone to be more consultative"
+    "Risk: Vivek may be hesitant to introduce a new technology stack, fearing potential disruptions to existing systems. → Adjusted tone to be more consultative",
+    "Risk: He might prioritize short-term cost savings over long-term infrastructure modernization, potentially leading to technical debt and future headaches. → Softened CTA, emphasized ROI framing"
   ],
-  "confidence": 0.5
+  "confidence": 0.4
 }
 
   Company: Sarvam AI
-  DM: Rohan Kumar (Head of Data / VP Engineering)
+  DM: Vivek Raghavan (VP Engineering)
   Tone: consultative
-  Confidence: 0.50
+  Confidence: 0.40
 
   ── EMAIL ──
-Subject: Unlock Sarvam AI's Full Potential with DataVex
+Subject: Enhance Sarvam's AI Viability with DataVex
 
-Hi Rohan,
-
-Congratulations on announcing Sarvam-1, a 7B parameter multilingual model trained on 22 Indian languages [news]. This achievement is a testament to your team's dedication and expertise.
-
-However, as you continue to scale, I'm concerned that your infrastructure may not keep pace. Limited visibility into private repos can lead to technical debt and hinder innovation [tech_stack].
-
-DataVex has helped companies like yours at similar
+Hi Vivek,
+I came across Indian AI lab Sarvam's new models, a major bet on the viability of ... — The company also outlined plans to build specialized enterprise tools that align with their unique needs (1). As you prepare to launch these models, I'd like to highlight the infrastructure challenges Sarvam faces, such as ensuring optimized performance and scaling efficiently to reduce costs and improve system reliability (2).
+DataVex has delivere
 
   ── LINKEDIN DM ──
-Hi Rohan! I came across your recent announcement on Sarvam-1 and was impressed by the model's capabilities. How do you see DataVex contributing to your team's continued success?
+Hi Vivek, I noticed Sarvam's plans to build specialized enterprise tools that align with their unique needs (1). How can you ensure the viability of new AI models through optimized performance and scalable infrastructure?
 
   ── CALL OPENER ──
-Rohan, congratulations on Sarvam-1! As you continue to scale, are you concerned about maintaining infrastructure that can keep pace with your growth?
+Hi Vivek, I came across Indian AI lab Sarvam's new models, a major bet on the viability of ... — The company also outlined plans to build specialized enterprise tools that align with their unique needs. Can you tell me more about your approach to ensuring optimized performance and scalable infrastru
 
 
 ======================================================================

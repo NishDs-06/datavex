@@ -1,21 +1,14 @@
 """
 Agent 2 — SignalExtractionAgent
-Extracts structured business signals with evidence from raw company data.
+Extracts structured business signals from REAL web data (DuckDuckGo scraping).
+Falls back to demo_data only if scraping returns nothing.
 """
 import logging
 from models import CandidateCompany, CompanySignals, Signal, EvidenceItem
 from config import llm_call_with_retry
-from demo_data import DEMO_COMPANIES
+from scraper import scrape_company_signals
 
 logger = logging.getLogger("datavex_pipeline.agent2")
-
-
-def get_demo_signals(company_name: str) -> dict | None:
-    """Look up pre-built signal data for demo companies."""
-    for demo in DEMO_COMPANIES:
-        if demo["company_name"] == company_name:
-            return demo
-    return None
 
 
 def build_evidence_list(raw_items: list[dict]) -> list[EvidenceItem]:
@@ -39,15 +32,14 @@ def classify_state(signals: dict, all_evidence: list[dict]) -> str:
     """Apply contradiction detection rules to determine company state."""
     all_text = " ".join(e.get("text", "") for e in all_evidence).lower()
 
-    has_hiring = any(kw in all_text for kw in ["hiring", "roles", "engineer", "architect"])
+    has_hiring = any(kw in all_text for kw in ["hiring", "roles", "engineer", "architect", "jobs", "careers"])
     has_layoffs = any(kw in all_text for kw in ["layoff", "laid off", "cut", "reduce workforce"])
     has_legacy = any(kw in all_text for kw in ["legacy", "monolith", "migration", "technical debt", "tech debt"])
-    has_cloud = any(kw in all_text for kw in ["cloud", "kubernetes", "microservices", "k8s", "aws"])
+    has_cloud = any(kw in all_text for kw in ["cloud", "kubernetes", "microservices", "k8s", "aws", "gcp", "azure"])
     has_cost_cutting = any(kw in all_text for kw in ["cost", "burn", "profitability", "budget", "layoff"])
-    has_ai_investment = any(kw in all_text for kw in ["ai", "ml", "machine learning", "model", "inference"])
-    has_growth = any(kw in all_text for kw in ["series", "raised", "funding", "expand", "growth", "revenue"])
+    has_ai_investment = any(kw in all_text for kw in ["ai", "ml", "machine learning", "model", "inference", "llm", "generative"])
+    has_growth = any(kw in all_text for kw in ["series", "raised", "funding", "expand", "growth", "revenue", "valuation"])
 
-    # Rule-based classification
     if has_hiring and has_layoffs:
         return "RESTRUCTURING"
     if has_legacy and has_cloud:
@@ -56,62 +48,100 @@ def classify_state(signals: dict, all_evidence: list[dict]) -> str:
         return "COST_OPTIMIZATION"
     if has_growth and has_hiring and not has_layoffs:
         return "GROWTH"
+    if has_ai_investment:
+        return "AI_ADOPTION"
     return "STABLE"
 
 
 def extract_signals_llm(company_name: str, raw_texts: list[dict]) -> dict:
-    """Use LLM to classify raw text data into structured signals."""
+    """Use LLM to classify real scraped data into structured signals."""
+    texts_formatted = "\n".join(f"[{t['source']}] {t['text']}" for t in raw_texts[:12])
+
+    result = llm_call_with_retry(
+        prompt=f"""Company: {company_name}
+
+Raw signal data scraped from the web:
+{texts_formatted}
+
+Based on this REAL data, classify into:
+- pivot: any strategic direction change (new market, product shift, enterprise expansion, new product launch)
+- tech_debt: legacy systems, migration challenges, infrastructure issues, scaling problems
+- fiscal_pressure: cost cutting, layoffs, burn rate concerns, funding pressure, profitability push
+
+Return JSON: {{"pivot": {{"label": "str", "evidence_indices": [int]}}, "tech_debt": {{"label": "str", "evidence_indices": [int]}}, "fiscal_pressure": {{"label": "str", "evidence_indices": [int]}}}}
+Use null for any signal category with no evidence. evidence_indices are 0-based indices into the raw data list.
+IMPORTANT: Only classify signals that are clearly supported by the data. Don't invent signals.""",
+        system="You are a B2B signal extraction agent. Classify REAL company data into strategic signals. Be specific and honest — only report what the data supports."
+    )
+    return result
+
+
+def extract_why_now(company_name: str, raw_texts: list[dict]) -> list[dict]:
+    """Use LLM to extract 'why now' triggers from real scraped data."""
     texts_formatted = "\n".join(f"[{t['source']}] {t['text']}" for t in raw_texts[:10])
 
     result = llm_call_with_retry(
         prompt=f"""Company: {company_name}
 
-Raw signal data:
+Scraped data:
 {texts_formatted}
 
-Classify these into:
-- pivot: any strategic direction change (new market, product shift, enterprise expansion)
-- tech_debt: legacy systems, migration challenges, infrastructure issues
-- fiscal_pressure: cost cutting, layoffs, burn rate concerns, funding pressure
+Extract 1-3 specific "why now" triggers — recent events that create urgency for this company to act.
+Examples: funding round, product launch, leadership change, partnership, regulatory change, competitive pressure.
 
-Return JSON: {{"pivot": {{"label": "str", "evidence_indices": [int]}}, "tech_debt": {{"label": "str", "evidence_indices": [int]}}, "fiscal_pressure": {{"label": "str", "evidence_indices": [int]}}}}
-Use null for any signal category with no evidence. evidence_indices are 0-based indices into the raw data list.""",
-        system="You are a B2B signal extraction agent. Classify company data into strategic signals. Be specific about labels."
+Return JSON: {{"triggers": [{{"event": "specific event description", "recency_days": estimated_days_ago, "impact": "high|medium|low"}}]}}
+Only include triggers clearly supported by the scraped data. Don't invent events.""",
+        system="You are a B2B timing analyst. Extract real, specific triggers from company data."
     )
-    return result
+    return result.get("triggers", [])
 
 
 def run(candidates: list[CandidateCompany]) -> list[CompanySignals]:
-    """Run Agent 2: extract signals for each candidate company."""
+    """Run Agent 2: scrape real web data and extract signals for each company."""
     logger.info(f"AGENT 2 — SignalExtraction: processing {len(candidates)} companies")
     results = []
 
     for candidate in candidates:
         logger.info(f"  Extracting signals for {candidate.company_name}")
 
-        # Get demo data or generate via LLM
-        demo = get_demo_signals(candidate.company_name)
-        if demo:
-            raw_signals = demo["raw_signals"]
-            why_now = demo.get("why_now_triggers", [])
-        else:
-            raw_signals = {"careers": [], "news": [], "tech_stack": [], "blog": []}
-            why_now = []
+        # ── SCRAPE REAL DATA ──
+        raw_signals = scrape_company_signals(candidate.company_name, candidate.domain)
+
+        # Check if we got any data
+        total_scraped = sum(len(v) for v in raw_signals.values())
+        if total_scraped == 0:
+            logger.warning(f"  ⚠ No data scraped for {candidate.company_name} — falling back to demo_data")
+            try:
+                from demo_data import DEMO_COMPANIES
+                for demo in DEMO_COMPANIES:
+                    if demo["company_name"] == candidate.company_name:
+                        raw_signals = demo["raw_signals"]
+                        break
+            except ImportError:
+                pass
 
         # Flatten all raw texts
         all_raw = []
         for category in ["careers", "news", "tech_stack", "blog"]:
             all_raw.extend(raw_signals.get(category, []))
 
-        # Build evidence lists per category
-        careers_evidence = build_evidence_list(raw_signals.get("careers", []))
-        news_evidence = build_evidence_list(raw_signals.get("news", []))
-        tech_evidence = build_evidence_list(raw_signals.get("tech_stack", []))
-        blog_evidence = build_evidence_list(raw_signals.get("blog", []))
-        all_evidence = careers_evidence + news_evidence + tech_evidence + blog_evidence
+        if not all_raw:
+            logger.warning(f"  No data at all for {candidate.company_name} — creating empty signals")
+            results.append(CompanySignals(
+                company_name=candidate.company_name,
+                company_state="UNKNOWN",
+                raw_texts=[],
+            ))
+            continue
 
-        # LLM signal extraction
+        # Build evidence lists
+        all_evidence = build_evidence_list(all_raw)
+
+        # LLM signal extraction from REAL data
         llm_signals = extract_signals_llm(candidate.company_name, all_raw)
+
+        # LLM why-now extraction from REAL data
+        why_now = extract_why_now(candidate.company_name, all_raw)
 
         # Build Signal objects
         pivot_signal = None
@@ -137,7 +167,7 @@ def run(candidates: list[CandidateCompany]) -> list[CompanySignals]:
                 if 0 <= idx < len(all_evidence):
                     td_evidence.append(all_evidence[idx])
             if not td_evidence and all_evidence:
-                td_evidence = [e for e in all_evidence if any(kw in e.text.lower() for kw in ["legacy", "monolith", "debt", "migration"])]
+                td_evidence = [e for e in all_evidence if any(kw in e.text.lower() for kw in ["legacy", "monolith", "debt", "migration", "infrastructure"])]
             tech_debt_signal = Signal(
                 label=td_data.get("label", "Technical debt detected"),
                 confidence=compute_confidence(td_evidence),
@@ -152,14 +182,14 @@ def run(candidates: list[CandidateCompany]) -> list[CompanySignals]:
                 if 0 <= idx < len(all_evidence):
                     fp_evidence.append(all_evidence[idx])
             if not fp_evidence and all_evidence:
-                fp_evidence = [e for e in all_evidence if any(kw in e.text.lower() for kw in ["cost", "layoff", "burn", "profitability"])]
+                fp_evidence = [e for e in all_evidence if any(kw in e.text.lower() for kw in ["cost", "layoff", "burn", "profitability", "funding"])]
             fiscal_signal = Signal(
                 label=fp_data.get("label", "Fiscal pressure detected"),
                 confidence=compute_confidence(fp_evidence),
                 evidence=fp_evidence,
             )
 
-        # Classify state
+        # Classify state from real data
         company_state = classify_state(llm_signals, all_raw)
 
         signals = CompanySignals(
@@ -172,6 +202,6 @@ def run(candidates: list[CandidateCompany]) -> list[CompanySignals]:
             raw_texts=all_raw,
         )
         results.append(signals)
-        logger.info(f"  {candidate.company_name}: state={company_state}, pivot={pivot_signal is not None}, tech_debt={tech_debt_signal is not None}, fiscal={fiscal_signal is not None}")
+        logger.info(f"  {candidate.company_name}: state={company_state}, pivot={pivot_signal is not None}, tech_debt={tech_debt_signal is not None}, fiscal={fiscal_signal is not None} [from {total_scraped} scraped data points]")
 
     return results

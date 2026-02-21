@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   DATAVEX — Calm Editorial Tokens (V4)
+   DATAVEX — Premium Editorial Tokens (V7)
    ═══════════════════════════════════════════ */
 
 :root {
@@ -10,10 +10,12 @@
   --text-primary: #181612;
   --text-muted: #9B9489;
   --accent: #1A6B47;
+  --accent-hover: #155C3D;
   --warning: #C2601F;
   --accent-tint: #F0F7F3;
   --sidebar-bg: #F2EFE9;
   --accent-soft: rgba(26, 107, 71, 0.08);
+  --hover-bg: #F5F3F0;
 
   /* ── FONTS ── */
   --font-display: 'Instrument Serif', serif;
@@ -28,13 +30,19 @@
   --sp-64: 64px;
   --sp-96: 96px;
 
-  /* ── RADIUS ── */
-  --radius-card: 14px;
-  --radius-section: 20px;
-  --radius-input: 8px;
+  /* ── RADIUS (V7 — softer everywhere) ── */
+  --radius-card: 24px;
+  --radius-section: 24px;
+  --radius-button: 20px;
+  --radius-button-secondary: 12px;
+  --radius-pill: 20px;
+  --radius-input: 12px;
+  --radius-sidebar: 12px;
 
   /* ── SHADOW ── */
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-button: 0 2px 8px rgba(26, 107, 71, 0.25);
 }
 
 /* ── RESET ── */

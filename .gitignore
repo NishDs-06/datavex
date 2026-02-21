@@ -24,3 +24,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+
+
+# Python
+__pycache__/
+*.pyc
+
+# env + secrets
+.env
+
+# databases
+*.db
+
+# node
+node_modules/

@@ -1,0 +1,261 @@
+{
+    "Fractal Analytics": {
+        "signals": {
+            "careers": [
+                {
+                    "text": "Fractal Analytics is actively hiring for Software Engineer (Backend, Fullstack React), Data Engineer (Azure), GCP Engineer, Kafka Engineer, Automation Test Engineer, Gen AI Data Scientist. Hiring across Mumbai, Pune, Chennai, Bengaluru, Gurgaon, and New York.",
+                    "source": "careers",
+                    "recency_days": 15
+                },
+                {
+                    "text": "Fractal launched Gen AI Data Scientist Hiring Challenge 2025 for professionals with 2+ years experience — MCQ + ML question round, direct interviews for top performers.",
+                    "source": "careers",
+                    "recency_days": 30
+                },
+                {
+                    "text": "Imagineer (Hiring Women in Tech) program targeting 2025 graduates. Compensation for B.Tech/MCA: INR 22 LPA over 3 years, starting at INR 6 LPA + INR 1 Lakh joining bonus.",
+                    "source": "careers",
+                    "recency_days": 45
+                }
+            ],
+            "news": [
+                {
+                    "text": "Fractal Analytics raised $170 million in July 2025 through secondary share sale, valued at $2.44 billion. 22 investors participated, Apax Partners partially divested. Total funding: $855 million.",
+                    "source": "news",
+                    "recency_days": 10
+                },
+                {
+                    "text": "Fractal filed for IPO in August 2025 aiming to raise Rs 4,900 crore ($560M) at $3.5B+ valuation. IPO debuted Feb 2026 at $1.6B listing valuation.",
+                    "source": "news",
+                    "recency_days": 30
+                },
+                {
+                    "text": "Revenue grew 25.9% to Rs 2,765 crore in FY25. Net profit Rs 220 crore, turnaround from loss in previous year. EBITDAM targeting 20%+ from 13% in FY25.",
+                    "source": "news",
+                    "recency_days": 20
+                },
+                {
+                    "text": "Fractal invested $20M in Asper.ai (AI platform for consumer goods/manufacturing) in March 2025.",
+                    "source": "news",
+                    "recency_days": 60
+                }
+            ],
+            "tech_stack": [
+                {
+                    "text": "Fractal recognized as 'Leader' in Forrester Wave Customer Analytics Services Q2 2025. Partners with Microsoft (Azure OpenAI, Copilot, Cloud for Retail), OpenAI (Solutions Partner), NVIDIA, AWS (Premier Tier), and Databricks.",
+                    "source": "tech_stack",
+                    "recency_days": 15
+                },
+                {
+                    "text": "Won Retail & Consumer Goods 2025 Microsoft Partner of the Year Award. Heavy adoption of Azure OpenAI Service, Microsoft Copilot. Powers data-driven decisions for Fortune 500 companies.",
+                    "source": "tech_stack",
+                    "recency_days": 30
+                }
+            ],
+            "blog": [
+                {
+                    "text": "Fractal operates through two segments: Fractal.ai (AI services/products) and Fractal Alpha (independent AI ventures). Client base includes Microsoft, Apple, Nvidia, Alphabet, Amazon, Meta, Tesla.",
+                    "source": "blog",
+                    "recency_days": 20
+                }
+            ]
+        },
+        "decision_makers": [
+            {
+                "name": "Srikanth Velamakanni",
+                "role": "Group Chief Executive & Co-Founder",
+                "source": "linkedin: fractal.ai/leadership",
+                "raw_title": "Group Chief Executive and Executive Vice-Chairman, co-founded Fractal in 2000. CEO from 2000-2019."
+            },
+            {
+                "name": "Pranay Agrawal",
+                "role": "CEO",
+                "source": "linkedin: linkedin.com/in/pranayfractal",
+                "raw_title": "Non-Executive Director and Chief Executive Officer for Fractal USA, appointed CEO in 2016."
+            },
+            {
+                "name": "Shashidhar Ramakrishnaiah",
+                "role": "CTO",
+                "source": "linkedin: linkedin.com/in/shashidhar-ramakrishnaiah",
+                "raw_title": "Chief Technology Officer at Fractal Analytics."
+            },
+            {
+                "name": "Ajoy Singh",
+                "role": "Chief AI Officer",
+                "source": "fractal.ai/leadership",
+                "raw_title": "Chief AI Officer at Fractal Analytics."
+            }
+        ]
+    },
+    "Databricks": {
+        "signals": {
+            "careers": [
+                {
+                    "text": "Databricks workforce reached 9,000 employees in 2025. Actively hiring Software Engineer, Data Engineer, Platform Engineer, Solution Architect roles. Also hiring Software Engineer - New Grad 2025.",
+                    "source": "careers",
+                    "recency_days": 10
+                },
+                {
+                    "text": "Tech stack: Python, SQL, Scala, Java, C++, R, JavaScript, TypeScript. Requires Apache Spark, Delta Lake, Unity Catalog, Kubernetes, Docker, Terraform, Jenkins, MLflow.",
+                    "source": "careers",
+                    "recency_days": 15
+                },
+                {
+                    "text": "Solution Architect roles specialize in data engineering, data science, cloud platforms, and security. Interview process includes technical coding, architectural, and executive interviews.",
+                    "source": "careers",
+                    "recency_days": 30
+                }
+            ],
+            "news": [
+                {
+                    "text": "Databricks closed $1 billion Series K (Sep 2025) at $100B+ valuation, led by Andreessen Horowitz, Insight Partners, MGX, Thrive Capital. For AI strategy, Agent Bricks, Lakebase, AI acquisitions.",
+                    "source": "news",
+                    "recency_days": 5
+                },
+                {
+                    "text": "Databricks raising Series L of $4 billion+ (Dec 2025) at $134 billion valuation. Revenue run-rate exceeding $4.8B in Q3 2025, 55%+ YoY growth. Positive free cash flow.",
+                    "source": "news",
+                    "recency_days": 10
+                },
+                {
+                    "text": "Strategic partnerships in 2025: Anthropic ($100M 5-year deal, March), Google Cloud/Gemini (4-year deal, June), NTT DATA ($200M target), Kyndryl global alliance (June). Accenture/Avanade 7th consecutive Global Partner of the Year.",
+                    "source": "news",
+                    "recency_days": 15
+                },
+                {
+                    "text": "Launched Agent Bricks (AI agent development platform), Lakebase (transactional database), and Databricks One (no-code AI BI platform) at 2025 Data + AI Summit.",
+                    "source": "news",
+                    "recency_days": 20
+                }
+            ],
+            "tech_stack": [
+                {
+                    "text": "Core: Lakehouse architecture unifying data lakes + warehouses. Built on Apache Spark. Delta Lake for ACID transactions. Unity Catalog as data governance 'operating system'. MLflow for ML lifecycle.",
+                    "source": "tech_stack",
+                    "recency_days": 5
+                },
+                {
+                    "text": "2025 stack: Python, SQL, PySpark essential. ETL: Medallion Architecture, Apache Airflow, Fivetran, dbt. Cloud: AWS, Azure, GCP. New: Agent Bricks, Lakebase, Databricks Apps, embedded GenAI.",
+                    "source": "tech_stack",
+                    "recency_days": 10
+                }
+            ],
+            "blog": [
+                {
+                    "text": "2025 vision: 'Data Intelligence Platform' — embedding Generative AI into workflows, Unity Catalog central governance. Data Warehousing and AI products each exceed $1B revenue run-rate.",
+                    "source": "blog",
+                    "recency_days": 15
+                }
+            ]
+        },
+        "decision_makers": [
+            {
+                "name": "Ali Ghodsi",
+                "role": "CEO & Co-Founder",
+                "source": "linkedin: linkedin.com/in/alighodsi",
+                "raw_title": "CEO and co-founder of Databricks. Previously VP of Engineering and Product Management. Became CEO in 2016."
+            },
+            {
+                "name": "Matei Zaharia",
+                "role": "CTO & Co-Founder",
+                "source": "linkedin: linkedin.com/in/mateizaharia",
+                "raw_title": "CTO and co-founder. Founded Apache Spark in 2009 at UC Berkeley PhD. Leads tech/research roadmap, core platform: Spark, Delta Lake, MLflow."
+            },
+            {
+                "name": "Ion Stoica",
+                "role": "Executive Chairman & Co-Founder",
+                "source": "linkedin: databricks.com/company/leadership",
+                "raw_title": "Executive Chairman, co-founder. Strategic oversight on M&A and R&D priorities."
+            },
+            {
+                "name": "Patrick Wendell",
+                "role": "SVP Engineering & Co-Founder",
+                "source": "databricks.com/company/leadership",
+                "raw_title": "Co-founder and SVP Engineering at Databricks."
+            }
+        ]
+    },
+    "MindsDB": {
+        "signals": {
+            "careers": [
+                {
+                    "text": "MindsDB actively hiring — seeking passionate ML engineers. Benefits: unlimited PTO, remote work setup budget, company offsites, personal development budget. Expanding team with Series C funding.",
+                    "source": "careers",
+                    "recency_days": 20
+                },
+                {
+                    "text": "Key roles include ML Engineer, Data Engineer, Backend Engineer, DevOps. Focus on building AI-in-database technology. Team is fully remote.",
+                    "source": "careers",
+                    "recency_days": 30
+                }
+            ],
+            "news": [
+                {
+                    "text": "MindsDB closed $47M Series C (Oct 2025) at $150M valuation, led by Benchmark and Mayfield. Funds for scaling ops, expanding team, enhancing products, new features, market presence.",
+                    "source": "news",
+                    "recency_days": 5
+                },
+                {
+                    "text": "MindsDB declared full support for Model Context Protocol (MCP) across open-source and enterprise platforms (April 2025) — becoming a unified AI data hub standardizing AI model access to enterprise data.",
+                    "source": "news",
+                    "recency_days": 45
+                },
+                {
+                    "text": "Strategic partnerships: aiComply + NavigateCyber for Federal ATO (Nov 2025), Google collaboration for MCP Toolbox (Nov 2025), Oracle + Salesforce integrations (Oct 2025).",
+                    "source": "news",
+                    "recency_days": 15
+                },
+                {
+                    "text": "Intelligent Protection Management Corp signed AI Reseller Agreement with MindsDB (Sep 2025). Y Combinator backed. Open-source AI-in-database platform.",
+                    "source": "news",
+                    "recency_days": 30
+                }
+            ],
+            "tech_stack": [
+                {
+                    "text": "Core tech: AI-in-database platform — brings ML directly into databases. Supports MCP protocol for standardized AI model access. Open-source with enterprise tier. Integrations with Oracle, Salesforce, Google.",
+                    "source": "tech_stack",
+                    "recency_days": 10
+                },
+                {
+                    "text": "Founded 2017, Y Combinator backed. Platform enables real-time predictions from existing databases without external ML pipelines. Python + SQL interface for ML.",
+                    "source": "tech_stack",
+                    "recency_days": 30
+                }
+            ],
+            "blog": [
+                {
+                    "text": "MindsDB vision: democratize ML by making it accessible through SQL. No need for separate ML infrastructure — predictions happen inside your existing database.",
+                    "source": "blog",
+                    "recency_days": 30
+                }
+            ]
+        },
+        "decision_makers": [
+            {
+                "name": "Jorge Torres",
+                "role": "CEO & Co-Founder",
+                "source": "linkedin: linkedin.com/in/jorge-torres",
+                "raw_title": "Co-Founder and Chief Executive Officer at MindsDB. Founded 2017."
+            },
+            {
+                "name": "Adam Carrigan",
+                "role": "COO & Co-Founder",
+                "source": "linkedin: linkedin.com/in/adam-carrigan",
+                "raw_title": "Co-Founder and Chief Operating Officer at MindsDB."
+            },
+            {
+                "name": "Brad Gyger",
+                "role": "Chief Revenue Officer",
+                "source": "mindsdb.com/about",
+                "raw_title": "Chief Revenue Officer at MindsDB."
+            },
+            {
+                "name": "Sidney Rabsatt",
+                "role": "Chief Product Officer",
+                "source": "mindsdb.com/about",
+                "raw_title": "Chief Product Officer at MindsDB."
+            }
+        ]
+    }
+}

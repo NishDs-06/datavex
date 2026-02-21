@@ -4,62 +4,72 @@ logger = logging.getLogger("datavex_pipeline.agent5")
 
 
 # ---------------------------------------------------
-# Decide persona
+# PERSONA SELECTION
 # ---------------------------------------------------
-def decide_persona(signals):
 
-    for s in signals:
-        if "ML" in s or "pipeline" in s:
-            return "Head of ML Engineering"
+def decide_persona(strategy, conversion, deal_size):
+    """
+    Choose stakeholder based on GTM motion
+    """
 
-        if "infrastructure" in s.lower():
-            return "VP Engineering"
+    if strategy == "BUILD_HEAVY":
+        return "CTO / Head of AI"
 
-        if "data" in s.lower():
-            return "Head of Data Platform"
+    if strategy == "CO_BUILD":
+        return "VP Engineering / Director ML"
 
-    return "CTO"
+    if strategy == "PLATFORM":
+        return "Head of Data Platform"
+
+    if strategy == "AUDIT":
+        return "Infra / SRE Lead"
+
+    return "Technical Leader"
 
 
 # ---------------------------------------------------
-# Decide channel
+# CHANNEL SELECTION
 # ---------------------------------------------------
-def decide_channel(motion):
 
-    if motion == "SALES_LED":
+def decide_channel(strategy):
+    if strategy in ["BUILD_HEAVY", "CO_BUILD"]:
         return "cold_email"
-
-    if motion == "PRODUCT_LED":
-        return "plg_email"
-
+    if strategy == "PLATFORM":
+        return "product_led_email"
     return "linkedin"
 
 
 # ---------------------------------------------------
-# Build subject line
+# SUBJECT LINE
 # ---------------------------------------------------
-def build_subject(company, entry_point):
 
+def build_subject(company, entry_point):
     return f"{company} — quick idea on {entry_point}"
 
 
 # ---------------------------------------------------
-# Build outreach message
+# MESSAGE GENERATION
 # ---------------------------------------------------
-def build_message(company, persona, entry_point, hypothesis, signals):
 
-    signal_line = ", ".join(signals[:2])
+def build_message(company, persona, entry_point, strategy):
+    angle_map = {
+        "BUILD_HEAVY": "accelerate delivery and reduce infra burden",
+        "CO_BUILD": "augment your internal team to ship faster",
+        "PLATFORM": "optimize and extend your existing data platform",
+        "AUDIT": "identify infra bottlenecks and cost inefficiencies",
+        "MONITOR": "share insights and stay aligned as you scale"
+    }
+
+    angle = angle_map.get(strategy, "explore collaboration opportunities")
 
     return f"""
 Hi {persona},
 
-Noticed that {company} is seeing {signal_line}.
+I’ve been following {company}'s recent growth — looks like the team is scaling fast.
 
-We’ve been helping teams in a similar stage tackle issues around {entry_point}, especially when scaling ML/data infra.
+We typically help companies at this stage {angle}, especially around areas like {entry_point}.
 
-Based on what we’re seeing, there may be an opportunity to support {company} in stabilizing performance and reducing infra load.
-
-Open to a quick 20-min discussion to explore?
+Would it be useful to start with a quick 20-min conversation to explore where we can support your team?
 
 – Datavex
 """.strip()
@@ -68,14 +78,19 @@ Open to a quick 20-min discussion to explore?
 # ---------------------------------------------------
 # MAIN
 # ---------------------------------------------------
+
 def run(decisions):
 
     outputs = []
 
     for d in decisions:
 
-        persona = decide_persona(d["summary"].split(","))
-        channel = decide_channel(d["recommended_motion"])
+        strategy = d["strategy"]
+        conversion = d["conversion_score"]
+        deal_size = d["deal_size_score"]
+
+        persona = decide_persona(strategy, conversion, deal_size)
+        channel = decide_channel(strategy)
 
         subject = build_subject(d["company_name"], d["entry_point"])
 
@@ -83,18 +98,19 @@ def run(decisions):
             d["company_name"],
             persona,
             d["entry_point"],
-            d["deal_hypothesis"],
-            d["summary"].split(",")
+            strategy
         )
 
         outputs.append({
             "company_name": d["company_name"],
+            "strategy": strategy,
             "persona": persona,
             "channel": channel,
             "subject": subject,
             "message": message,
             "priority": d["priority"],
-            "score": d["opportunity_score"]
+            "conversion_score": conversion,
+            "deal_size_score": deal_size
         })
 
     return outputs

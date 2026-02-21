@@ -1,213 +1,152 @@
 """
-GitHub Org Scraper (Free GitHub API)
-Detects:
-  - Commit frequency (activity level)
-  - Open issue backlog (maintenance signal)
-  - Language diversity
-  - Legacy codebase signals from repo names/descriptions
-  - Contributor trends
-Rate limit: 60 req/hr unauthenticated, 5000/hr with token
+GitHub Org Scraper — fast, fails immediately on rate limits.
+Set GITHUB_TOKEN in .env for 5000 req/hr.
+Skips commit activity stats (slow API) — uses repo metadata only.
 """
 import os
 import re
-import statistics
 from datetime import datetime, timezone
 from loguru import logger
 
 try:
-    from github import Github, GithubException
+    from github import Github, GithubException, RateLimitExceededException
 except ImportError:
     Github = None
-
 
 LEGACY_REPO_SIGNALS = [
     "legacy", "deprecated", "old-", "v1", "monolith", "migration",
     "archive", "technical-debt", "refactor", "rewrite"
 ]
+MAX_REPOS = 20
 
 
 def scrape_github_org(org_name: str, company_name: str, token: str | None = None) -> dict:
-    """
-    Fetch GitHub organization data and compute tech debt signals.
-    org_name: GitHub org handle (e.g. 'microsoft', 'airbnb')
-    token: optional GitHub PAT for higher rate limits (free to create)
-    """
     if Github is None:
-        logger.error("PyGithub not installed. Run: pip install PyGithub")
-        return _empty_result(company_name, org_name)
+        logger.error("PyGithub not installed.")
+        return _empty(company_name, org_name)
 
     token = token or os.getenv("GITHUB_TOKEN")
-    gh    = Github(token) if token else Github()
+    if not token:
+        logger.warning(f"[{company_name}] No GITHUB_TOKEN in .env — GitHub skipped")
+        return _empty(company_name, org_name)
+
+    # retry=None prevents urllib3 from sleeping on 403s
+    gh = Github(token, timeout=10, retry=None)
 
     try:
-        org   = gh.get_organization(org_name)
-        repos = list(org.get_repos(type="public", sort="updated"))[:30]  # top 30 active
+        rate = gh.get_rate_limit()
+        if rate.core.remaining < 30:
+            logger.warning(f"[{company_name}] GitHub rate limit low ({rate.core.remaining} left) — skipping")
+            return _empty(company_name, org_name)
 
-        total_open_issues  = 0
-        total_stars        = 0
-        commit_freqs       = []
-        languages          = {}
-        legacy_signals     = []
-        repo_summaries     = []
+        org   = gh.get_organization(org_name)
+        repos = list(org.get_repos(type="public", sort="updated"))[:MAX_REPOS]
+
+        total_open_issues = 0
+        languages         = {}
+        legacy_signals    = []
+        repo_summaries    = []
+        stale_count       = 0
 
         for repo in repos:
-            # Open issues
             total_open_issues += repo.open_issues_count
-            total_stars       += repo.stargazers_count
 
-            # Languages
+            # Languages — quick metadata call
             try:
-                langs = repo.get_languages()
-                for lang, bytes_count in langs.items():
-                    languages[lang] = languages.get(lang, 0) + bytes_count
-            except GithubException:
+                for lang, b in repo.get_languages().items():
+                    languages[lang] = languages.get(lang, 0) + b
+            except Exception:
                 pass
 
-            # Commit frequency (last 52 weeks)
-            try:
-                weekly_commits = repo.get_stats_commit_activity()
-                if weekly_commits:
-                    recent_4_weeks = [w.total for w in list(weekly_commits)[-4:]]
-                    avg = sum(recent_4_weeks) / 4 if recent_4_weeks else 0
-                    commit_freqs.append(avg)
-            except GithubException:
-                pass
-
-            # Legacy signals
+            # Legacy signals from repo name + description (no API call)
             repo_text = (repo.name + " " + (repo.description or "")).lower()
             for signal in LEGACY_REPO_SIGNALS:
                 if signal in repo_text:
                     legacy_signals.append({"repo": repo.name, "signal": signal})
 
-            # How old is the repo's last commit?
-            days_since_update = (datetime.now(timezone.utc) - repo.updated_at).days if repo.updated_at else 999
+            days_since = (datetime.now(timezone.utc) - repo.updated_at).days if repo.updated_at else 999
+            if days_since > 180:
+                stale_count += 1
 
             repo_summaries.append({
-                "name":               repo.name,
-                "open_issues":        repo.open_issues_count,
-                "stars":              repo.stargazers_count,
-                "days_since_update":  days_since_update,
-                "language":           repo.language,
+                "name":              repo.name,
+                "open_issues":       repo.open_issues_count,
+                "stars":             repo.stargazers_count,
+                "days_since_update": days_since,
+                "language":          repo.language,
             })
 
-        # Sort languages by usage
-        top_languages = sorted(languages.items(), key=lambda x: x[1], reverse=True)
-        top_languages = [lang for lang, _ in top_languages[:10]]
+        top_langs = [l for l, _ in sorted(languages.items(), key=lambda x: x[1], reverse=True)[:10]]
+        debt      = _assess_debt(total_open_issues, len(repos), legacy_signals, stale_count)
 
-        avg_commit_freq = statistics.mean(commit_freqs) if commit_freqs else 0
+        logger.success(f"[{company_name}] GitHub: {len(repos)} repos | {total_open_issues} issues | debt={debt['label']}")
 
-        # Composite signals
-        high_issue_repos = [r for r in repo_summaries if r["open_issues"] > 50]
-        stale_repos      = [r for r in repo_summaries if r["days_since_update"] > 180]
-
-        debt_assessment = _assess_github_debt(
-            total_open_issues, len(repos), avg_commit_freq, legacy_signals, stale_repos
-        )
-
-        result = {
+        return {
             "company_name":      company_name,
             "org_name":          org_name,
             "total_repos":       len(repos),
             "total_open_issues": total_open_issues,
-            "avg_commit_freq":   round(avg_commit_freq, 2),
-            "languages":         top_languages,
-            "legacy_signals":    legacy_signals[:20],  # cap
-            "github_debt": {
-                "high_issue_repos": [r["name"] for r in high_issue_repos],
-                "stale_repos":      [r["name"] for r in stale_repos],
-                "debt_score":       debt_assessment["score"],
-                "assessment":       debt_assessment["label"],
-            },
-            "top_repos": repo_summaries[:10],
+            "avg_commit_freq":   0.0,   # skipped — too slow
+            "languages":         top_langs,
+            "legacy_signals":    legacy_signals[:20],
+            "github_debt":       debt,
+            "top_repos":         repo_summaries[:10],
         }
 
-        logger.info(
-            f"[{company_name}] GitHub: {len(repos)} repos, "
-            f"{total_open_issues} open issues, "
-            f"{len(legacy_signals)} legacy signals"
-        )
-        return result
-
+    except RateLimitExceededException:
+        logger.warning(f"[{company_name}] GitHub rate limit hit — skipping")
+        return _empty(company_name, org_name)
+    except GithubException as e:
+        if e.status == 404:
+            logger.warning(f"[{company_name}] GitHub org '{org_name}' not found")
+        else:
+            logger.warning(f"[{company_name}] GitHub error {e.status}: {e.data}")
+        return _empty(company_name, org_name)
     except Exception as e:
-        logger.warning(f"GitHub scrape failed for org '{org_name}': {e}")
-        return _empty_result(company_name, org_name)
+        logger.warning(f"[{company_name}] GitHub failed: {e}")
+        return _empty(company_name, org_name)
 
 
 def find_github_org(company_name: str) -> str | None:
-    """
-    Attempt to find a company's GitHub org by guessing common slug formats.
-    e.g. "DataVex Inc" → tries "datavex", "datavex-inc", etc.
-    """
-    if Github is None:
+    if Github is None or not os.getenv("GITHUB_TOKEN"):
         return None
-
-    slugs = _generate_slugs(company_name)
-    gh = Github(os.getenv("GITHUB_TOKEN"))
-
-    for slug in slugs:
+    gh = Github(os.getenv("GITHUB_TOKEN"), timeout=10, retry=None)
+    for slug in _slugs(company_name):
         try:
-            org = gh.get_organization(slug)
-            logger.info(f"Found GitHub org for '{company_name}': {org.login}")
-            return org.login
-        except GithubException:
+            return gh.get_organization(slug).login
+        except Exception:
             continue
-
-    logger.debug(f"No GitHub org found for '{company_name}'")
     return None
 
 
-def _generate_slugs(name: str) -> list[str]:
-    """Generate possible GitHub org slug variants from a company name."""
-    clean = re.sub(r"[^a-z0-9\s-]", "", name.lower()).strip()
+def _slugs(name: str) -> list[str]:
+    clean = re.sub(r"[^a-z0-9\s]", "", name.lower()).strip()
     words = clean.split()
-    return [
-        "".join(words),            # datavex
-        "-".join(words),           # data-vex
-        words[0],                  # data
-        clean.replace(" ", ""),
-    ]
+    seen, out = set(), []
+    for s in ["".join(words), "-".join(words), words[0] if words else ""]:
+        if s and s not in seen:
+            seen.add(s)
+            out.append(s)
+    return out
 
 
-def _assess_github_debt(
-    total_issues: int,
-    repo_count: int,
-    avg_commits: float,
-    legacy_signals: list,
-    stale_repos: list,
-) -> dict:
+def _assess_debt(total_issues, repo_count, legacy_signals, stale_count) -> dict:
     score = 0
     if repo_count > 0:
-        issue_ratio = total_issues / repo_count
-        if issue_ratio > 50:  score += 3
-        elif issue_ratio > 20: score += 2
-        elif issue_ratio > 5:  score += 1
-
-    if avg_commits < 2:   score += 2
-    elif avg_commits < 5: score += 1
-
+        r = total_issues / repo_count
+        score += 3 if r > 50 else 2 if r > 20 else 1 if r > 5 else 0
     score += min(3, len(legacy_signals))
-    score += min(2, len(stale_repos) // 3)
-
-    score = min(10, score)
-    label = (
-        "Critical" if score >= 8 else
-        "High"     if score >= 6 else
-        "Medium"   if score >= 4 else
-        "Low"      if score >= 2 else
-        "Minimal"
-    )
+    score += min(2, stale_count // 3)
+    score  = min(10, score)
+    label  = ("Critical" if score >= 8 else "High" if score >= 6 else
+              "Medium"   if score >= 4 else "Low"  if score >= 2 else "Minimal")
     return {"score": score, "label": label}
 
 
-def _empty_result(company_name: str, org_name: str) -> dict:
+def _empty(company_name, org_name) -> dict:
     return {
-        "company_name": company_name,
-        "org_name":     org_name,
-        "total_repos":  0,
-        "total_open_issues": 0,
-        "avg_commit_freq": 0.0,
-        "languages": [],
-        "legacy_signals": [],
-        "github_debt": {"score": 0, "label": "Unknown"},
-        "top_repos": [],
+        "company_name": company_name, "org_name": org_name,
+        "total_repos": 0, "total_open_issues": 0, "avg_commit_freq": 0.0,
+        "languages": [], "legacy_signals": [],
+        "github_debt": {"score": 0, "label": "Unknown"}, "top_repos": [],
     }

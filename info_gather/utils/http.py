@@ -24,18 +24,30 @@ def get_session() -> requests.Session:
     session.headers.update(random.choice(HEADERS_POOL))
     return session
 
+
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def safe_get(url: str, session: requests.Session | None = None, timeout: int = 20, **kwargs) -> requests.Response:
-    """GET with automatic retry and polite delay."""
-    time.sleep(random.uniform(1.0, 2.5))   # polite crawl delay
+    """GET with retry — used for important pages like IR, careers HTML."""
+    time.sleep(random.uniform(0.5, 1.5))
     s = session or get_session()
-
     resp = s.get(url, timeout=timeout, **kwargs)
     resp.raise_for_status()
     return resp
 
+
+def quick_get(url: str, session: requests.Session | None = None, timeout: int = 8, **kwargs) -> requests.Response:
+    """
+    GET with NO retry — used for ATS API probing where we try many slugs
+    and expect most to 404. Fails immediately so we can move to next slug fast.
+    """
+    s = session or get_session()
+    resp = s.get(url, timeout=timeout, **kwargs)
+    resp.raise_for_status()
+    return resp
+
+
 def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
-    """Extract plain text from a PDF given as raw bytes. Pure Python, no C deps."""
+    """Extract plain text from PDF bytes using pdfminer (pure Python)."""
     import io
     from pdfminer.high_level import extract_text
     return extract_text(io.BytesIO(pdf_bytes))

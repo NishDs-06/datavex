@@ -7,13 +7,21 @@ def main():
     signals = run_agent2(candidates)
     results = run_agent3(candidates, signals)
 
-    print("\nAGENT 3 OUTPUT\n")
+    print("\n==============================")
+    print("       AGENT 3 OUTPUT")
+    print("==============================\n")
 
     for r in results:
         print(r["company_name"])
         print("Priority:", r["priority"], "| Score:", r["opportunity_score"])
+        print("Intent:", r["intent_score"],
+              "| Conversion:", r["conversion_score"],
+              "| Deal Size:", r["deal_size_score"])
+        print("Expansion:", r["expansion_score"],
+              "| Strain:", r["strain_score"],
+              "| Risk:", r["risk_score"])
         print("Summary:", r["summary"])
-        print("-"*40)
+        print("-"*50)
 
 if __name__ == "__main__":
     main()

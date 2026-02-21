@@ -3,96 +3,98 @@ import logging
 logger = logging.getLogger("datavex_pipeline.agent4")
 
 
-def estimate_leadership_tech_depth(company_name: str) -> float:
-    name = company_name.lower()
+# ---------------------------------------------------
+# STRATEGY LOGIC
+# ---------------------------------------------------
 
-    if "databricks" in name:
-        return 0.9
-    if "mindsdb" in name:
-        return 0.85
-    if "fractal" in name:
-        return 0.6
+def choose_strategy(intent, conversion, deal_size, risk, internal_strength):
+    """
+    Decide GTM motion based on intent, conversion likelihood and risk
+    """
 
-    return 0.5
+    # high risk → do not aggressively sell
+    if risk > 0.5:
+        return "AUDIT"
 
+    # strong intent + easy to convert
+    if intent > 0.7 and conversion > 0.7:
+        return "BUILD_HEAVY"
 
-def compute_conversion_friction(buying_style: str, tech_depth: float, size: str) -> float:
-    friction = 0.0
+    # strong intent but harder conversion
+    if intent > 0.7 and conversion > 0.4:
+        return "CO_BUILD"
 
-    if buying_style == "BUILD_HEAVY":
-        friction += 0.4
-    elif buying_style == "HYBRID":
-        friction += 0.2
-    else:
-        friction += 0.1
+    # low intent but expansion opportunity
+    if intent < 0.6 and deal_size > 0.7:
+        return "PLATFORM"
 
-    friction += tech_depth * 0.4
-
-    if size == "large":
-        friction += 0.2
-    elif size == "mid":
-        friction += 0.1
-
-    return min(1.0, friction)
+    return "MONITOR"
 
 
-def select_persona(buying_style: str, tech_depth: float):
+# ---------------------------------------------------
+# OFFER MAPPING
+# ---------------------------------------------------
 
-    if buying_style == "BUILD_HEAVY":
-        return "Head of Platform Engineering" if tech_depth > 0.75 else "VP Engineering"
-
-    if buying_style == "HYBRID":
-        return "VP Data / AI"
-
-    return "CTO"
-
-
-def build_messaging(company, tech_depth, friction):
-
-    if tech_depth > 0.8:
-        return f"{company} has strong internal engineering — position DataVex as performance acceleration partner."
-
-    if friction > 0.6:
-        return f"{company} may resist vendors — lead with low-risk audit."
-
-    return f"{company} can benefit from external support to accelerate scaling."
+def map_offer(strategy):
+    return {
+        "BUILD_HEAVY": "custom AI infra buildout",
+        "CO_BUILD": "co-development with internal team",
+        "PLATFORM": "data platform integration",
+        "AUDIT": "infrastructure audit & optimization",
+        "MONITOR": "nurture / thought leadership"
+    }.get(strategy, "general advisory")
 
 
-def run(opportunities, signals, strategies):
+def map_entry_point(strategy):
+    return {
+        "BUILD_HEAVY": "full architecture assessment",
+        "CO_BUILD": "joint ML pipeline optimization session",
+        "PLATFORM": "platform demo + integration workshop",
+        "AUDIT": "infra performance audit",
+        "MONITOR": "send technical insights / case studies"
+    }.get(strategy, "intro call")
 
-    outputs = []
 
-    for opp, sig, strat in zip(opportunities, signals, strategies):
+# ---------------------------------------------------
+# MAIN
+# ---------------------------------------------------
 
-        company = opp["company_name"]
-        size = opp.get("size", "mid")
+def run(scored_opportunities):
 
-        tech_depth = estimate_leadership_tech_depth(company)
+    results = []
 
-        friction = compute_conversion_friction(
-            strat["buying_style"],
-            tech_depth,
-            size
+    for o in scored_opportunities:
+
+        intent = o["intent_score"]
+        conversion = o["conversion_score"]
+        deal_size = o["deal_size_score"]
+        risk = o.get("risk_score", 0.0)
+
+        # NOTE: we don’t have internal_tech_strength here directly,
+        # but conversion already encodes capability gap, so it's fine
+
+        strategy = choose_strategy(
+            intent,
+            conversion,
+            deal_size,
+            risk,
+            internal_strength=None
         )
 
-        persona = select_persona(
-            strat["buying_style"],
-            tech_depth
-        )
+        offer = map_offer(strategy)
+        entry = map_entry_point(strategy)
 
-        messaging = build_messaging(
-            company,
-            tech_depth,
-            friction
-        )
+        results.append({
+            "company_name": o["company_name"],
+            "priority": o["priority"],
+            "strategy": strategy,
+            "recommended_offer": offer,
+            "entry_point": entry,
 
-        outputs.append({
-            "company_name": company,
-            "persona": persona,
-            "tech_depth": round(tech_depth, 2),
-            "conversion_friction": round(friction, 2),
-            "messaging_angle": messaging,
-            "confidence": round(0.4 + (1 - friction) * 0.5, 3),
+            "intent_score": intent,
+            "conversion_score": conversion,
+            "deal_size_score": deal_size,
+            "risk_score": risk
         })
 
-    return outputs
+    return results

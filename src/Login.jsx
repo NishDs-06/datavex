@@ -24,16 +24,16 @@ export default function LoginScreen({ onComplete }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '40px 24px',
         }}>
-            <div style={{ width: '100%', maxWidth: '380px', animation: 'contentFade 200ms ease-out' }}>
+            <div style={{ width: '100%', maxWidth: '440px', animation: 'contentFade 200ms ease-out' }}>
                 {/* Brand */}
-                <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent)' }} />
-                        <span style={{ fontFamily: 'var(--font-display)', fontSize: '32px', color: 'var(--text-primary)' }}>
+                <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--accent)' }} />
+                        <span style={{ fontFamily: 'var(--font-display)', fontSize: '36px', color: 'var(--text-primary)' }}>
                             DataVex AI
                         </span>
                     </div>
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-muted)', marginTop: '6px' }}>
                         Sales Intelligence Platform
                     </p>
                 </div>
@@ -41,21 +41,21 @@ export default function LoginScreen({ onComplete }) {
                 {/* Card */}
                 <div style={{
                     background: 'var(--surface)', border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-card)', padding: '40px 32px',
-                    boxShadow: 'var(--shadow)',
+                    borderRadius: '24px', padding: '48px 40px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                 }}>
                     <h2 style={{
-                        fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 400,
-                        marginBottom: '32px', textAlign: 'center',
+                        fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 400,
+                        marginBottom: '40px', textAlign: 'center',
                     }}>
                         Sign in
                     </h2>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <div>
                             <label style={{
-                                display: 'block', fontFamily: 'var(--font-body)', fontSize: '12px',
-                                fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px',
+                                display: 'block', fontFamily: 'var(--font-body)', fontSize: '13px',
+                                fontWeight: 500, color: 'var(--text-primary)', marginBottom: '8px',
                             }}>
                                 Username
                             </label>
@@ -65,13 +65,14 @@ export default function LoginScreen({ onComplete }) {
                                 onKeyDown={handleKeyDown}
                                 placeholder="admin"
                                 autoFocus
+                                style={{ borderRadius: '12px', padding: '14px 18px', fontSize: '15px' }}
                             />
                         </div>
 
                         <div>
                             <label style={{
-                                display: 'block', fontFamily: 'var(--font-body)', fontSize: '12px',
-                                fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px',
+                                display: 'block', fontFamily: 'var(--font-body)', fontSize: '13px',
+                                fontWeight: 500, color: 'var(--text-primary)', marginBottom: '8px',
                             }}>
                                 Password
                             </label>
@@ -80,12 +81,13 @@ export default function LoginScreen({ onComplete }) {
                                 onChange={(e) => { setPass(e.target.value); setError(''); }}
                                 onKeyDown={handleKeyDown}
                                 placeholder="••••••"
+                                style={{ borderRadius: '12px', padding: '14px 18px', fontSize: '15px' }}
                             />
                         </div>
 
                         {error && (
                             <p style={{
-                                fontFamily: 'var(--font-body)', fontSize: '12px',
+                                fontFamily: 'var(--font-body)', fontSize: '13px',
                                 color: 'var(--warning)', textAlign: 'center',
                             }}>
                                 {error}
@@ -95,9 +97,9 @@ export default function LoginScreen({ onComplete }) {
                         <button
                             onClick={handleLogin}
                             style={{
-                                fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 500,
+                                fontFamily: 'var(--font-body)', fontSize: '15px', fontWeight: 500,
                                 color: 'var(--surface)', background: 'var(--accent)',
-                                padding: '12px 24px', borderRadius: 'var(--radius-input)',
+                                padding: '14px 24px', borderRadius: '12px',
                                 cursor: 'pointer', transition: 'opacity 150ms', marginTop: '8px',
                                 width: '100%',
                             }}
@@ -111,7 +113,7 @@ export default function LoginScreen({ onComplete }) {
 
                 <p style={{
                     fontFamily: 'var(--font-mono)', fontSize: '10px',
-                    color: 'var(--text-muted)', textAlign: 'center', marginTop: '32px',
+                    color: 'var(--text-muted)', textAlign: 'center', marginTop: '36px',
                     letterSpacing: '0.04em',
                 }}>
                     DataVex AI · v2.4.1 · Synth Layer Active

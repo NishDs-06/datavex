@@ -3,7 +3,7 @@
  * Connects React frontend to FastAPI backend (http://localhost:8000)
  */
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = 'http://172.21.3.22:8000/api/v1';
 
 export async function getCompanies(sort = 'score', order = 'desc') {
     const res = await fetch(`${API_BASE}/companies?sort_by=${sort}&order=${order}&limit=50`);

@@ -65,7 +65,9 @@ def strategy_from(intent, conv):
     return 'MONITOR', 'share AI insights and case studies', 'send domain-specific AI case study', 'Technical Leader / Director', 'linkedin'
 
 # ── Company definitions ────────────────────────────────────────
-# tech_affinity: 1.0 = AI/data/tech company (our ICP), 0.0 = non-tech (never buys)
+# outsource_need: likelihood a company NEEDS to buy tech help vs. building it themselves
+# 1.0 = no internal tech team, clear business problem → perfect customer
+# 0.1 = deep-tech company that builds everything in-house → won't buy from us
 COMPANIES = [
     {
         'name': 'Cropin Technology',
@@ -76,9 +78,9 @@ COMPANIES = [
         'employees': 450,
         'region': 'Bengaluru, India',
         'internal_tech_strength': 0.65,
-        'conversion_bias': 0.7,
+        'conversion_bias': 0.70,
         'competitor': False,
-        'tech_affinity': 0.80,  # AI/ML-driven agritech — adjacent field
+        'outsource_need': 0.60,  # Has some tech team but needs specialized data infra help
     },
     {
         'name': 'Bentley Systems',
@@ -91,7 +93,7 @@ COMPANIES = [
         'internal_tech_strength': 0.80,
         'conversion_bias': 0.65,
         'competitor': False,
-        'tech_affinity': 0.70,  # Engineering software, uses data pipelines
+        'outsource_need': 0.50,  # Large eng-software company, strong internal team
     },
     {
         'name': "Dr. Reddy's Laboratories",
@@ -104,7 +106,7 @@ COMPANIES = [
         'internal_tech_strength': 0.70,
         'conversion_bias': 0.75,
         'competitor': False,
-        'tech_affinity': 0.55,  # Pharma — some data ops but not core tech
+        'outsource_need': 0.75,  # Pharma = huge data needs, outsources most IT/AI
     },
     {
         'name': 'Clari',
@@ -117,7 +119,7 @@ COMPANIES = [
         'internal_tech_strength': 0.92,
         'conversion_bias': 0.10,
         'competitor': True,
-        'tech_affinity': 1.0,  # Direct competitor — AI/analytics
+        'outsource_need': 0.0,
     },
     {
         'name': 'MindsDB',
@@ -130,7 +132,7 @@ COMPANIES = [
         'internal_tech_strength': 0.85,
         'conversion_bias': 0.88,
         'competitor': False,
-        'tech_affinity': 1.0,  # Perfect ICP — AI/ML, data infra, same field
+        'outsource_need': 0.10,  # Deep-tech AI company — builds everything in-house, won't buy
     },
     {
         'name': 'Deenet Services',
@@ -143,7 +145,7 @@ COMPANIES = [
         'internal_tech_strength': 0.40,
         'conversion_bias': 0.75,
         'competitor': False,
-        'tech_affinity': 0.85,  # IT services — directly in tech, buys tools
+        'outsource_need': 0.65,  # IT services company — they DO sometimes buy SaaS tools
     },
     {
         'name': 'Spotify',
@@ -156,7 +158,7 @@ COMPANIES = [
         'internal_tech_strength': 0.92,
         'conversion_bias': 0.55,
         'competitor': False,
-        'tech_affinity': 0.75,  # Tech company, ML-heavy, data engineering needs
+        'outsource_need': 0.20,  # Giant tech company — 1000+ engineers, builds everything
     },
     {
         'name': 'Fathima Stores',
@@ -169,7 +171,7 @@ COMPANIES = [
         'internal_tech_strength': 0.20,
         'conversion_bias': 0.65,
         'competitor': False,
-        'tech_affinity': 0.10,  # Retail grocery — would NEVER buy AI infra
+        'outsource_need': 0.80,  # No tech team, needs inventory/demand analytics → buys tools
     },
     {
         'name': 'MLM Constructions and Products',
@@ -182,7 +184,7 @@ COMPANIES = [
         'internal_tech_strength': 0.25,
         'conversion_bias': 0.70,
         'competitor': False,
-        'tech_affinity': 0.10,  # Construction — would NEVER buy AI data tools
+        'outsource_need': 0.75,  # No tech team, needs project/cost analytics → outsources
     },
 ]
 
@@ -230,18 +232,19 @@ for cfg in COMPANIES:
             best[t] = s
     key_signals = list(best.keys())[:3]
 
-    intent   = round(0.45 * expansion + 0.35 * strain + 0.2 * cfg['internal_tech_strength'], 3)
-    conv     = round(cfg['conversion_bias'] * 0.90 + 0.10 * expansion, 3) if not is_comp else 0.08
+    intent   = round(0.45 * expansion + 0.35 * strain + 0.2 * (1.0 - cfg['internal_tech_strength']), 3)
+    # Capability gap: LOW internal tech = they NEED US. HIGH internal tech = they build it themselves.
+    capability_gap = round(1.0 - cfg['internal_tech_strength'], 3)
+    conv     = round(cfg['conversion_bias'] * 0.80 + 0.20 * capability_gap, 3) if not is_comp else 0.08
     # MID/SMALL companies = recurring, sticky, long-term revenue
-    # LARGE companies = one-shot deals, slow to close, low repeat rate
     deal_sz  = 0.55 if cfg['size'] == 'LARGE' else 0.80
-    # Extra bonus for mid companies that come back repeatedly
     recurring_bonus = 0.05 if cfg['size'] in ('MID', 'SMALL') and not is_comp else 0.0
-    raw_score = round(0.35 * intent + 0.40 * conv + 0.25 * deal_sz + recurring_bonus, 3) if not is_comp else 0.12
-    # Tech affinity multiplier: non-tech companies (retail, construction) score near 0
-    # because they would never buy AI data infra tools like Datavex
-    tech_affinity = cfg.get('tech_affinity', 1.0)
-    opp_sc   = round(raw_score * tech_affinity, 3)
+    raw_score = round(0.30 * intent + 0.45 * conv + 0.25 * deal_sz + recurring_bonus, 3) if not is_comp else 0.12
+    # outsource_need: companies that NEED tech help but don't have it internally score highest.
+    # Deep-tech companies (MindsDB, Deenet) build their own — they won't buy from us.
+    # Non-tech businesses (retail, agri, pharma, construction) with growth signals are ideal.
+    outsource_need = cfg.get('outsource_need', 0.5)
+    opp_sc   = round(raw_score * outsource_need, 3)
     priority = priority_from(int(opp_sc * 100))
     score_int = int(opp_sc * 100) if not is_comp else 12
 

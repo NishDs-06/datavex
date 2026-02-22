@@ -1211,5 +1211,137 @@
         "role": "CTO / VP Engineering"
       }
     ]
+  },
+  "samsung": {
+    "meta": {
+      "industry": "Consumer Electronics / Technology Conglomerate",
+      "size": "LARGE",
+      "region": "Seoul, South Korea",
+      "employees": 270000,
+      "competitor": false,
+      "internal_tech_strength": 0.5,
+      "conversion_bias": 0.65,
+      "domain_display": "samsung"
+    },
+    "signals": {
+      "funding": [
+        {
+          "text": "Samsung SDI to mull sale of display affiliate stake to raise investment funds - Korea JoongAng Daily",
+          "source": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQLWcyOE5waERzOVYtQnl5cEFQVkVDZFNCYUJ0M0hYOTNTQ3hoaldpTG8tcGpkcmh3MnZWV3Nmd1NKbHpuSXZkUWlBUHF6SW1rWTJRLWo4X3VlaEUzYm5YWk5ySGx2a2VJa2kzaHZNSm9mT0xCUC1lTEFqTUZfV3kxYWVCaXVrZVFieHI3dzNBMWM5TlB1bDA0ZGJaZUswdWxxajN6S05ncXVXS0M3eC1KNzd6ZnVQNGFjT2t4bVc1WWlBSEhGaFNXeDRiVTgxUzNkckZlcTNiaFpTRkVSX2RjQU1BNUphQjA?oc=5",
+          "recency_days": 45,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQLWcyOE5waERzOVYtQnl5cEFQVkVDZFNCYUJ0M0hYOTNTQ3hoaldpTG8tcGpkcmh3MnZWV3Nmd1NKbHpuSXZkUWlBUHF6SW1rWTJRLWo4X3VlaEUzYm5YWk5ySGx2a2VJa2kzaHZNSm9mT0xCUC1lTEFqTUZfV3kxYWVCaXVrZVFieHI3dzNBMWM5TlB1bDA0ZGJaZUswdWxxajN6S05ncXVXS0M3eC1KNzd6ZnVQNGFjT2t4bVc1WWlBSEhGaFNXeDRiVTgxUzNkckZlcTNiaFpTRkVSX2RjQU1BNUphQjA?oc=5"
+        },
+        {
+          "text": "Samsung backs South Korean AI chip startup Rebellions ahead of IPO - CNBC",
+          "source": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPa0FORUI3QU83bFZ0bzdnZmt3WWhnMHVFaG51NlltNUVRQnphdUNFRG15RHMxcDFnOUVtWE1fRHN6NlkzdUxpOUxPOF84d29lcnpYMmQ3OHVjVFRESUJDX09ybDB3ZDQ3N3FFU0ZPTTRRUzI5Z3BYdjZORFRoa3VYUF94YlVmUVJPQnVRV2RGWU1tSnct0gGaAUFVX3lxTE5oZW9SUDRMRS1OSzdrMTRBVTY4LUtUdGVUaVI0MVVhbE14WGprU2lHV3N0aGdLMEVINnpqTkk5M2tRZUhISFhxTmtRam1aOUwyTExOLTRxMk5ZNG43Q0hKWjZwaVBabDlySHBCQk9sTmw1ZXpHM2E3OHFYbkhDWlNwUEc0bFR3bGVCekNmZnFLNDQ3X0owNTVfbXc?oc=5",
+          "recency_days": 45,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPa0FORUI3QU83bFZ0bzdnZmt3WWhnMHVFaG51NlltNUVRQnphdUNFRG15RHMxcDFnOUVtWE1fRHN6NlkzdUxpOUxPOF84d29lcnpYMmQ3OHVjVFRESUJDX09ybDB3ZDQ3N3FFU0ZPTTRRUzI5Z3BYdjZORFRoa3VYUF94YlVmUVJPQnVRV2RGWU1tSnct0gGaAUFVX3lxTE5oZW9SUDRMRS1OSzdrMTRBVTY4LUtUdGVUaVI0MVVhbE14WGprU2lHV3N0aGdLMEVINnpqTkk5M2tRZUhISFhxTmtRam1aOUwyTExOLTRxMk5ZNG43Q0hKWjZwaVBabDlySHBCQk9sTmw1ZXpHM2E3OHFYbkhDWlNwUEc0bFR3bGVCekNmZnFLNDQ3X0owNTVfbXc?oc=5"
+        },
+        {
+          "text": "Samsung-Backed Chipmaker Axelera AI Looks to Raise \u20ac150 Million - Bloomberg.com",
+          "source": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPN1l5ZnU4SlloN3dTcUFWb00yWnR5YVBhckZveHVSMV8yU0VaOEdKQWUyaGZ2MDNqNzVOS3pxNnlYeHZRWFVWdTEtODRFT056ZGRENlROMXFMQWpucUotMXVsOHR2cFdQSmZNMVlqRnk1QjY5Z0pZSnpZeFI1VUYyd3JudXJoc1dvVzJ5TWN0UGIxRnliVFc2S0RzNTgxS1lmdXBOSndCNnJfa3NDc254RE1qSQ?oc=5",
+          "recency_days": 45,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPN1l5ZnU4SlloN3dTcUFWb00yWnR5YVBhckZveHVSMV8yU0VaOEdKQWUyaGZ2MDNqNzVOS3pxNnlYeHZRWFVWdTEtODRFT056ZGRENlROMXFMQWpucUotMXVsOHR2cFdQSmZNMVlqRnk1QjY5Z0pZSnpZeFI1VUYyd3JudXJoc1dvVzJ5TWN0UGIxRnliVFc2S0RzNTgxS1lmdXBOSndCNnJfa3NDc254RE1qSQ?oc=5"
+        },
+        {
+          "text": "Teramount Raises $50M, Backed by AMD, Samsung, Hitachi | Industry News | Oct 2025 - Photonics Spectra",
+          "source": "https://news.google.com/rss/articles/CBMijAFBVV95cUxPcVljWmJhZk0ybFpzR2gxVTNzd21mdFhrMU9rSkhKOWRKbGVvNnZYVGwwVk0zS0VXNV80OWxXMXE0X20zVncxdTFYcW9HWE9kZFBVaF9jS0NSa2RITmpRS2xfM2d4d3BBeWpzeFd1Y0MzM2pNSzJVRmk1OFp6YzdzQjk3RXE5a3hXbHpBWg?oc=5",
+          "recency_days": 45,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMijAFBVV95cUxPcVljWmJhZk0ybFpzR2gxVTNzd21mdFhrMU9rSkhKOWRKbGVvNnZYVGwwVk0zS0VXNV80OWxXMXE0X20zVncxdTFYcW9HWE9kZFBVaF9jS0NSa2RITmpRS2xfM2d4d3BBeWpzeFd1Y0MzM2pNSzJVRmk1OFp6YzdzQjk3RXE5a3hXbHpBWg?oc=5"
+        }
+      ],
+      "infra": [
+        {
+          "text": "Layoffs hit Barton Malow\u2019s $3B GM, Samsung battery plant project - Construction Dive",
+          "source": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNVkx5U05HNXhBWFJEMVJEZEx1aGNoQjZ4cmUzakItX3IxWnU1Q2FfR3BKanJobG5CVGVtZ1BvS2txc3hTTnFfV0lPbklTTjlaT1VzVzJseE02bUxuVkplcjI3R0VqYnBEclNyVkJVMVA0bW0xOWUwVFJnWGhaSWo5VEt2SkhkNk1EYVFjUm9pMFN0dzFiUmZCbkwzMVVQb1lT?oc=5",
+          "recency_days": 30,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNVkx5U05HNXhBWFJEMVJEZEx1aGNoQjZ4cmUzakItX3IxWnU1Q2FfR3BKanJobG5CVGVtZ1BvS2txc3hTTnFfV0lPbklTTjlaT1VzVzJseE02bUxuVkplcjI3R0VqYnBEclNyVkJVMVA0bW0xOWUwVFJnWGhaSWo5VEt2SkhkNk1EYVFjUm9pMFN0dzFiUmZCbkwzMVVQb1lT?oc=5"
+        },
+        {
+          "text": "Samsung job cuts surface online, employees say no warning was given - People Matters - HR News",
+          "source": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxORUV1RkQzMFFTZlZmNnozYy1GWk5aakZucXhDUThOUmh5U0RiRjlBckZQVU1zSWVNdjlGa2dNaUs4RGlYQzJJLW12X19oQldaTk10SXdFY2VSSUkzMWxlRUlWcWtkeENLRjk4a3NhdWRXRE14STZJODVHUHNtTFN4dHg5YXZyeHpQcF8xeDVkd04weUxIdk1nSDhOVHNFbVhfRFJFSVp0SlpWeFFlWWZyamZ5REZkTTFFazlB?oc=5",
+          "recency_days": 30,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxORUV1RkQzMFFTZlZmNnozYy1GWk5aakZucXhDUThOUmh5U0RiRjlBckZQVU1zSWVNdjlGa2dNaUs4RGlYQzJJLW12X19oQldaTk10SXdFY2VSSUkzMWxlRUlWcWtkeENLRjk4a3NhdWRXRE14STZJODVHUHNtTFN4dHg5YXZyeHpQcF8xeDVkd04weUxIdk1nSDhOVHNFbVhfRFJFSVp0SlpWeFFlWWZyamZ5REZkTTFFazlB?oc=5"
+        }
+      ]
+    },
+    "decision_makers": [
+      {
+        "name": "",
+        "role": "CTO / VP Engineering"
+      }
+    ]
+  },
+  "infosys": {
+    "meta": {
+      "industry": "IT Services / Digital Transformation",
+      "size": "LARGE",
+      "region": "Bengaluru, India (BSE: INFY)",
+      "employees": 340000,
+      "competitor": false,
+      "internal_tech_strength": 0.55,
+      "conversion_bias": 0.78,
+      "domain_display": "Infosys Limited"
+    },
+    "signals": {
+      "funding": [
+        {
+          "text": "BMO Capital raises Infosys stock price target to $20 on solid quarter - Investing.com",
+          "source": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOX2tMMEw1cnVXNmtnb2pBckJ6ZkNrWVlsY2JLZTVJN0hSa2xQME9OaHc1VHBZdmlhSXJwQVIweUFoN1Fwd2o2NllfOXgzVEthWnhiU3daN3dwa1lTN2Ricm41NmJSTHFNLVNlMWZBN0lJTVV2akk4b2FYQXZvWVlCYTJ3N3QtZXkwZ2gxTjR2eWZ5YU9HQUh2WTJjeXNFTC1xR1Zta3RKQjItZWNIbnZQdGctZTl5eEctS21hbThnVjVkN3Y3QWY0?oc=5",
+          "recency_days": 45,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOX2tMMEw1cnVXNmtnb2pBckJ6ZkNrWVlsY2JLZTVJN0hSa2xQME9OaHc1VHBZdmlhSXJwQVIweUFoN1Fwd2o2NllfOXgzVEthWnhiU3daN3dwa1lTN2Ricm41NmJSTHFNLVNlMWZBN0lJTVV2akk4b2FYQXZvWVlCYTJ3N3QtZXkwZ2gxTjR2eWZ5YU9HQUh2WTJjeXNFTC1xR1Zta3RKQjItZWNIbnZQdGctZTl5eEctS21hbThnVjVkN3Y3QWY0?oc=5"
+        },
+        {
+          "text": "Fintech Firm Olyv Raises \u20b9208 Cr Funds from Infosys Co-founder Nilekani & Japan's SMBC - outlookbusiness.com",
+          "source": "https://news.google.com/rss/articles/CBMizgFBVV95cUxQUVRhZjUyUkpjcE80cFM4TS0yRVF0VlZUZ2daR0l0YXFkcVVBSk92SXc2ek9ocVdweFVwcExFcjZJZzNhUEZCRlY5c1FYcGVRaWVNNkFuUE82UmJ6eWhOWENFNHg4ejZnVkFXMHBhaHVxZVFuVU9MSlFWc1ZvcXpiUW9pWkEtYUp2SF9nbEdxeTA4N29nX2Y1cXJPVW1WUnhrTGVHQzNTSUdlbkdvRDIwVTd1cDl5b0VpbVp5UlhtWDBGT3VkOUdyRDRDRHFad9IB2wFBVV95cUxQYk1ST2FOMmZaUTFDeGNNTEJKemdSelByS01GbGc3UmZqTHFTZk5sb0Jib0tmelJsd3JZUC15V0x0ZTRyZVdKRUVZekh6d0tCd182WVQ5eGQ1U1dGajgzYjY2RHlDQjNzNFdrZ1RkUlFEVWtQbkE5MHVQT3ZSVmhoeFZSUHc3Rm1DVWZUTHdOSDdWdndoTjgyUWEtZ1dZaFFMcjdGRExPV21MR3NPa2lRaDJzSmVTaks2bkRUVG5lTWlBVDYxLTJiRzMzQXVQV0tLSGdDUmZaRkw5akU?oc=5",
+          "recency_days": 45,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMizgFBVV95cUxQUVRhZjUyUkpjcE80cFM4TS0yRVF0VlZUZ2daR0l0YXFkcVVBSk92SXc2ek9ocVdweFVwcExFcjZJZzNhUEZCRlY5c1FYcGVRaWVNNkFuUE82UmJ6eWhOWENFNHg4ejZnVkFXMHBhaHVxZVFuVU9MSlFWc1ZvcXpiUW9pWkEtYUp2SF9nbEdxeTA4N29nX2Y1cXJPVW1WUnhrTGVHQzNTSUdlbkdvRDIwVTd1cDl5b0VpbVp5UlhtWDBGT3VkOUdyRDRDRHFad9IB2wFBVV95cUxQYk1ST2FOMmZaUTFDeGNNTEJKemdSelByS01GbGc3UmZqTHFTZk5sb0Jib0tmelJsd3JZUC15V0x0ZTRyZVdKRUVZekh6d0tCd182WVQ5eGQ1U1dGajgzYjY2RHlDQjNzNFdrZ1RkUlFEVWtQbkE5MHVQT3ZSVmhoeFZSUHc3Rm1DVWZUTHdOSDdWdndoTjgyUWEtZ1dZaFFMcjdGRExPV21MR3NPa2lRaDJzSmVTaks2bkRUVG5lTWlBVDYxLTJiRzMzQXVQV0tLSGdDUmZaRkw5akU?oc=5"
+        },
+        {
+          "text": "Infosys beats estimates, raises revenue guidance - The Financial Express",
+          "source": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOWFpjdkR0WVYxVmdhMXp1MnIyY045Z1VzVTkyRGpfVi1iV1duREIzb2wtZEgxQmRXV3ZfZHhnUkVNcTFaWGc4aDhnMl9UX1ZiSmVkMU9RVjhCbXF5a1I2TXpsaTI3X2pfQTJPdS1KT0NFNEE5U053RUZtM3pFcEdOV2VvQ1k3ckJpZnZCTUNRYlFhc2tXOGprTU1DUXIwWGxPbmpsVkhJeHVQMFXSAbIBQVVfeXFMT3dnRXNLdHZ2M0NfZ0NncDN3UzRxMXhmNkVrR2FENnBWcC1ZamtsTm1BRTU4WWZHMXpPZm9iNmxBNG5ILVlCVzk3dThsYl9NdFR2YU54UGwyWUw1ZXFCUjM3TlhMeWI5UzI2T1NReVBoaVNzUkdHeFBTUk9XbVMyVmNPcTc1NEVwTHlNdGE4aXRKREJGbmVVWjlBLVV2djgxWjFNbldNZVJwSVZ0NFZzRDAtZw?oc=5",
+          "recency_days": 45,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOWFpjdkR0WVYxVmdhMXp1MnIyY045Z1VzVTkyRGpfVi1iV1duREIzb2wtZEgxQmRXV3ZfZHhnUkVNcTFaWGc4aDhnMl9UX1ZiSmVkMU9RVjhCbXF5a1I2TXpsaTI3X2pfQTJPdS1KT0NFNEE5U053RUZtM3pFcEdOV2VvQ1k3ckJpZnZCTUNRYlFhc2tXOGprTU1DUXIwWGxPbmpsVkhJeHVQMFXSAbIBQVVfeXFMT3dnRXNLdHZ2M0NfZ0NncDN3UzRxMXhmNkVrR2FENnBWcC1ZamtsTm1BRTU4WWZHMXpPZm9iNmxBNG5ILVlCVzk3dThsYl9NdFR2YU54UGwyWUw1ZXFCUjM3TlhMeWI5UzI2T1NReVBoaVNzUkdHeFBTUk9XbVMyVmNPcTc1NEVwTHlNdGE4aXRKREJGbmVVWjlBLVV2djgxWjFNbldNZVJwSVZ0NFZzRDAtZw?oc=5"
+        },
+        {
+          "text": "Infosys Faces \u20b98,600 Crore Mutual Fund Selloff Despite Strong Q3 Performance and Raised Guidance - scanx.trade",
+          "source": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxNWWZWeXRBYW9ueWRncjNJa1o4dnpOSE5OUV9NV194UWRqUl8wOEJRYzZBM2FORXNPMHBjeTFVcjcwRlo5T1gwengxa1hTNk9NQ1I4Rng0MUpralk2SnFtS2dLTnN3N2VSeS04WDlsekRyc1h0RjI3VTBZUHczcVU4NW9OMVpLY2toSHllOVBfaFR4a3JCZjAwT29QczFCUWxPQVlWUFU3QVVUeW1uM0dZQUtkQk9VVFhNTXFpT09RV0hEdzRpZVFFNmJfRVFNYmdSRnBMNV9pRjJpT1d3b1k4dmNWbw?oc=5",
+          "recency_days": 45,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxNWWZWeXRBYW9ueWRncjNJa1o4dnpOSE5OUV9NV194UWRqUl8wOEJRYzZBM2FORXNPMHBjeTFVcjcwRlo5T1gwengxa1hTNk9NQ1I4Rng0MUpralk2SnFtS2dLTnN3N2VSeS04WDlsekRyc1h0RjI3VTBZUHczcVU4NW9OMVpLY2toSHllOVBfaFR4a3JCZjAwT29QczFCUWxPQVlWUFU3QVVUeW1uM0dZQUtkQk9VVFhNTXFpT09RV0hEdzRpZVFFNmJfRVFNYmdSRnBMNV9pRjJpT1d3b1k4dmNWbw?oc=5"
+        }
+      ],
+      "infra": [
+        {
+          "text": "Anthropic forges Infosys AI deal amid widening tech layoffs - capacityglobal.com",
+          "source": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNa2VnUDFvRHpORzc2S0ZBMHNmZkNGQ0w0UVRPTE1OSmdjTXVlTkJ6Y0x3NTZ0Y0ZhYVVIWnJhS2lnM196T01ZaUdocVRZRUo0c3g2R0JxREdyLUFXOHdCdmQ3bmwyUW9HdG1JRW1FR2hFS25fZFRsVGtvTkQ4SWFzelZiSGZkWC1mdXVtMjJTR1ppRUZu?oc=5",
+          "recency_days": 30,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNa2VnUDFvRHpORzc2S0ZBMHNmZkNGQ0w0UVRPTE1OSmdjTXVlTkJ6Y0x3NTZ0Y0ZhYVVIWnJhS2lnM196T01ZaUdocVRZRUo0c3g2R0JxREdyLUFXOHdCdmQ3bmwyUW9HdG1JRW1FR2hFS25fZFRsVGtvTkQ4SWFzelZiSGZkWC1mdXVtMjJTR1ppRUZu?oc=5"
+        },
+        {
+          "text": "IT Workforce Trends: Infosys Rules Out Mass Layoffs as TCS Plans to Cut 12,000 Jobs - Deccan Herald",
+          "source": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxQQXFhMUxBeGFrWVdqck56dnZtTUxuNG1OeHVkQ191b2QwczBpNldJWm1WTFBqZi1lZG5NYUhvb21GVUJhNXBJbDBCbTZYVEpObHU1a2ppVXVUSjlsRVI3OWxSRTZfV2h4VUpZWWpxVGRqWmgyWEx2c3pSWUhWaWkzcE1BSHh1MGtQRmNITG1uS3lyZVA1UGRDVTdxVFI4Y09ISmdiV0tORDRNOTFtLU1aQllGdlQyblFCaDRZUGFCSkFpQjhOMVJkTFNnUmc4ajYzb2JDZTMyQ245RjdCaHZnSno3a2x0dEY5ZmNSMg?oc=5",
+          "recency_days": 30,
+          "verified": true,
+          "verification_source": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxQQXFhMUxBeGFrWVdqck56dnZtTUxuNG1OeHVkQ191b2QwczBpNldJWm1WTFBqZi1lZG5NYUhvb21GVUJhNXBJbDBCbTZYVEpObHU1a2ppVXVUSjlsRVI3OWxSRTZfV2h4VUpZWWpxVGRqWmgyWEx2c3pSWUhWaWkzcE1BSHh1MGtQRmNITG1uS3lyZVA1UGRDVTdxVFI4Y09ISmdiV0tORDRNOTFtLU1aQllGdlQyblFCaDRZUGFCSkFpQjhOMVJkTFNnUmc4ajYzb2JDZTMyQ245RjdCaHZnSno3a2x0dEY5ZmNSMg?oc=5"
+        }
+      ]
+    },
+    "decision_makers": [
+      {
+        "name": "",
+        "role": "CTO / VP Engineering"
+      }
+    ]
   }
 }

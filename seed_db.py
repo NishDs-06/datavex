@@ -194,10 +194,23 @@ COMPANIES = [
         'size': 'LARGE',
         'employees': 270000,
         'region': 'Seoul, South Korea (KRX: 005930)',
-        'internal_tech_strength': 0.65,  # Some BUs are strong, many divisions are not
+        'internal_tech_strength': 0.65,
         'conversion_bias': 0.80,
         'competitor': False,
-        'outsource_need': 0.80,  # Samsung BUs (SmartThings, Knox, Semiconductor) actively buy analytics/AI tools
+        'outsource_need': 0.80,
+    },
+    {
+        'name': 'infosys',
+        'slug': 'infosys',
+        'industry': 'IT Services / Digital Transformation',
+        'domain': 'IT Services & Consulting',
+        'size': 'LARGE',
+        'employees': 340000,
+        'region': 'Bengaluru, India (NSE: INFY)',
+        'internal_tech_strength': 0.55,  # Services company — clients use their tech, not their own
+        'conversion_bias': 0.78,
+        'competitor': False,
+        'outsource_need': 0.75,  # Buys SaaS/AI tools for internal delivery teams regularly
     },
 ]
 

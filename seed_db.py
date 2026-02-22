@@ -80,7 +80,7 @@ COMPANIES = [
         'internal_tech_strength': 0.65,
         'conversion_bias': 0.70,
         'competitor': False,
-        'outsource_need': 0.60,  # Has some tech team but needs specialized data infra help
+        'outsource_need': 0.70,  # Has some tech team but needs specialized data infra help
     },
     {
         'name': 'Bentley Systems',
@@ -93,7 +93,7 @@ COMPANIES = [
         'internal_tech_strength': 0.80,
         'conversion_bias': 0.65,
         'competitor': False,
-        'outsource_need': 0.50,  # Large eng-software company, strong internal team
+        'outsource_need': 0.45,  # Large eng-software company, strong internal team
     },
     {
         'name': "Dr. Reddy's Laboratories",
@@ -104,9 +104,9 @@ COMPANIES = [
         'employees': 24000,
         'region': 'Hyderabad, India (NYSE: RDY)',
         'internal_tech_strength': 0.70,
-        'conversion_bias': 0.75,
+        'conversion_bias': 0.82,
         'competitor': False,
-        'outsource_need': 0.75,  # Pharma = huge data needs, outsources most IT/AI
+        'outsource_need': 0.85,  # Pharma = huge data needs, outsources most IT/AI
     },
     {
         'name': 'Clari',
@@ -143,9 +143,9 @@ COMPANIES = [
         'employees': 80,
         'region': 'India',
         'internal_tech_strength': 0.40,
-        'conversion_bias': 0.75,
+        'conversion_bias': 0.80,
         'competitor': False,
-        'outsource_need': 0.65,  # IT services company — they DO sometimes buy SaaS tools
+        'outsource_need': 0.72,  # IT services company — frequently buys SaaS/AI tools
     },
     {
         'name': 'Spotify',
@@ -158,7 +158,7 @@ COMPANIES = [
         'internal_tech_strength': 0.92,
         'conversion_bias': 0.55,
         'competitor': False,
-        'outsource_need': 0.20,  # Giant tech company — 1000+ engineers, builds everything
+        'outsource_need': 0.18,  # Giant tech company — 1000+ engineers, builds everything
     },
     {
         'name': 'Fathima Stores',
@@ -169,9 +169,9 @@ COMPANIES = [
         'employees': 200,
         'region': 'Kerala, India',
         'internal_tech_strength': 0.20,
-        'conversion_bias': 0.65,
+        'conversion_bias': 0.82,
         'competitor': False,
-        'outsource_need': 0.80,  # No tech team, needs inventory/demand analytics → buys tools
+        'outsource_need': 0.92,  # No tech team, strong need for inventory/demand analytics
     },
     {
         'name': 'MLM Constructions and Products',
@@ -182,9 +182,9 @@ COMPANIES = [
         'employees': 120,
         'region': 'California, USA',
         'internal_tech_strength': 0.25,
-        'conversion_bias': 0.70,
+        'conversion_bias': 0.80,
         'competitor': False,
-        'outsource_need': 0.75,  # No tech team, needs project/cost analytics → outsources
+        'outsource_need': 0.88,  # No tech team, clear need for project/cost analytics
     },
 ]
 
@@ -219,7 +219,8 @@ for cfg in COMPANIES:
             })
 
     # ── Scores ─────────────────────────────────────────────
-    expansion  = min(1.0, len([s for s in enriched if s['type'] in {'HIRING','FUNDING','PRODUCT','GTM'}]) / 5.0)
+    # Expansion: 3 strong signals = full marks (was /5, now /3 — more realistic)
+    expansion  = min(1.0, len([s for s in enriched if s['type'] in {'HIRING','FUNDING','PRODUCT','GTM'}]) / 3.0)
     strain     = round(expansion * 0.75 + len([s for s in enriched if s['type'] == 'INFRA']) * 0.1, 3)
     risk       = 0.90 if is_comp else 0.05
     pain_score = round(0.5 * expansion + 0.3 * strain + 0.2 * (1 - risk), 3)
@@ -232,19 +233,18 @@ for cfg in COMPANIES:
             best[t] = s
     key_signals = list(best.keys())[:3]
 
-    intent   = round(0.45 * expansion + 0.35 * strain + 0.2 * (1.0 - cfg['internal_tech_strength']), 3)
-    # Capability gap: LOW internal tech = they NEED US. HIGH internal tech = they build it themselves.
+    # LOW internal_tech_strength = they can't build it → they BUY it from us
     capability_gap = round(1.0 - cfg['internal_tech_strength'], 3)
-    conv     = round(cfg['conversion_bias'] * 0.80 + 0.20 * capability_gap, 3) if not is_comp else 0.08
+    intent   = round(0.40 * expansion + 0.30 * strain + 0.30 * capability_gap, 3)
+    conv     = round(cfg['conversion_bias'] * 0.75 + 0.25 * capability_gap, 3) if not is_comp else 0.08
     # MID/SMALL companies = recurring, sticky, long-term revenue
     deal_sz  = 0.55 if cfg['size'] == 'LARGE' else 0.80
     recurring_bonus = 0.05 if cfg['size'] in ('MID', 'SMALL') and not is_comp else 0.0
     raw_score = round(0.30 * intent + 0.45 * conv + 0.25 * deal_sz + recurring_bonus, 3) if not is_comp else 0.12
-    # outsource_need: companies that NEED tech help but don't have it internally score highest.
-    # Deep-tech companies (MindsDB, Deenet) build their own — they won't buy from us.
-    # Non-tech businesses (retail, agri, pharma, construction) with growth signals are ideal.
+    # outsource_need: blended into final score (70% raw, 30% outsource signal)
+    # This prevents outsource_need from crushing scores multiplicatively
     outsource_need = cfg.get('outsource_need', 0.5)
-    opp_sc   = round(raw_score * outsource_need, 3)
+    opp_sc   = round(raw_score * 0.70 + outsource_need * 0.30, 3) if not is_comp else 0.12
     priority = priority_from(int(opp_sc * 100))
     score_int = int(opp_sc * 100) if not is_comp else 12
 

@@ -7,27 +7,24 @@ logger = logging.getLogger("datavex_pipeline.agent4")
 # STRATEGY LOGIC
 # ---------------------------------------------------
 
-def choose_strategy(intent, conversion, deal_size, risk, internal_strength):
+def choose_strategy(intent, conversion, deal_size):
     """
-    Decide GTM motion based on intent, conversion likelihood and risk
+    Decide GTM motion based on scores
     """
 
-    # high risk → do not aggressively sell
-    if risk > 0.5:
-        return "AUDIT"
-
-    # strong intent + easy to convert
-    if intent > 0.7 and conversion > 0.7:
+    # High intent + good conversion → build heavy engagement
+    if intent > 0.8 and conversion > 0.6:
         return "BUILD_HEAVY"
 
-    # strong intent but harder conversion
+    # High intent + moderate conversion → co-build
     if intent > 0.7 and conversion > 0.4:
         return "CO_BUILD"
 
-    # low intent but expansion opportunity
-    if intent < 0.6 and deal_size > 0.7:
-        return "PLATFORM"
+    # High intent but low conversion → monitor / nurture
+    if intent > 0.7 and conversion <= 0.4:
+        return "MONITOR"
 
+    # Low intent → just monitor
     return "MONITOR"
 
 
@@ -36,53 +33,68 @@ def choose_strategy(intent, conversion, deal_size, risk, internal_strength):
 # ---------------------------------------------------
 
 def map_offer(strategy):
-    return {
-        "BUILD_HEAVY": "custom AI infra buildout",
-        "CO_BUILD": "co-development with internal team",
-        "PLATFORM": "data platform integration",
-        "AUDIT": "infrastructure audit & optimization",
-        "MONITOR": "nurture / thought leadership"
-    }.get(strategy, "general advisory")
+
+    if strategy == "BUILD_HEAVY":
+        return "custom AI infra buildout"
+
+    if strategy == "CO_BUILD":
+        return "co-development with internal team"
+
+    if strategy == "PLATFORM":
+        return "platform integration / optimization"
+
+    if strategy == "AUDIT":
+        return "infra + ML pipeline audit"
+
+    if strategy == "MONITOR":
+        return "send technical insights / case studies"
+
+    return "general advisory support"
 
 
-def map_entry_point(strategy):
-    return {
-        "BUILD_HEAVY": "full architecture assessment",
-        "CO_BUILD": "joint ML pipeline optimization session",
-        "PLATFORM": "platform demo + integration workshop",
-        "AUDIT": "infra performance audit",
-        "MONITOR": "send technical insights / case studies"
-    }.get(strategy, "intro call")
+# ---------------------------------------------------
+# ENTRY POINT MAPPING
+# ---------------------------------------------------
+
+def map_entry(strategy):
+
+    if strategy == "BUILD_HEAVY":
+        return "full architecture assessment"
+
+    if strategy == "CO_BUILD":
+        return "joint ML pipeline optimization session"
+
+    if strategy == "PLATFORM":
+        return "platform integration workshop"
+
+    if strategy == "AUDIT":
+        return "ML infra performance audit"
+
+    if strategy == "MONITOR":
+        return "send technical insights / case studies"
+
+    return "intro discussion"
 
 
 # ---------------------------------------------------
 # MAIN
 # ---------------------------------------------------
 
-def run(scored_opportunities):
+def run(opportunities):
 
     results = []
 
-    for o in scored_opportunities:
+    for o in opportunities:
 
         intent = o["intent_score"]
         conversion = o["conversion_score"]
         deal_size = o["deal_size_score"]
-        risk = o.get("risk_score", 0.0)
+        risk = o["risk_score"]
 
-        # NOTE: we don’t have internal_tech_strength here directly,
-        # but conversion already encodes capability gap, so it's fine
-
-        strategy = choose_strategy(
-            intent,
-            conversion,
-            deal_size,
-            risk,
-            internal_strength=None
-        )
+        strategy = choose_strategy(intent, conversion, deal_size)
 
         offer = map_offer(strategy)
-        entry = map_entry_point(strategy)
+        entry = map_entry(strategy)
 
         results.append({
             "company_name": o["company_name"],
@@ -94,7 +106,10 @@ def run(scored_opportunities):
             "intent_score": intent,
             "conversion_score": conversion,
             "deal_size_score": deal_size,
-            "risk_score": risk
+            "risk_score": risk,
+
+            # 🔥 CRITICAL FIX: pass signals forward
+            "key_signals": o.get("key_signals", [])
         })
 
     return results

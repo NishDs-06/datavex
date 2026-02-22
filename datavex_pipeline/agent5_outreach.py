@@ -8,10 +8,6 @@ logger = logging.getLogger("datavex_pipeline.agent5")
 # ---------------------------------------------------
 
 def decide_persona(strategy, conversion, deal_size):
-    """
-    Choose stakeholder based on GTM motion
-    """
-
     if strategy == "BUILD_HEAVY":
         return "CTO / Head of AI"
 
@@ -51,7 +47,24 @@ def build_subject(company, entry_point):
 # MESSAGE GENERATION
 # ---------------------------------------------------
 
-def build_message(company, persona, entry_point, strategy):
+def build_message(company, persona, entry_point, strategy, signals):
+
+    # Map signal labels → human readable phrases
+    signal_map = {
+        "HIRING": "rapid hiring and team expansion",
+        "FUNDING": "recent funding and capital deployment",
+        "INFRA": "increasing infrastructure complexity",
+        "PRODUCT": "new product/platform launches",
+        "GTM": "enterprise partnerships and go-to-market expansion"
+    }
+
+    readable = [signal_map.get(s, s) for s in signals]
+
+    if readable:
+        signal_line = ", ".join(readable[:2])
+    else:
+        signal_line = "recent growth"
+
     angle_map = {
         "BUILD_HEAVY": "accelerate delivery and reduce infra burden",
         "CO_BUILD": "augment your internal team to ship faster",
@@ -65,7 +78,7 @@ def build_message(company, persona, entry_point, strategy):
     return f"""
 Hi {persona},
 
-I’ve been following {company}'s recent growth — looks like the team is scaling fast.
+Noticed that {company} is seeing {signal_line} — looks like the team is scaling quickly.
 
 We typically help companies at this stage {angle}, especially around areas like {entry_point}.
 
@@ -98,7 +111,8 @@ def run(decisions):
             d["company_name"],
             persona,
             d["entry_point"],
-            strategy
+            strategy,
+            d.get("key_signals", [])
         )
 
         outputs.append({

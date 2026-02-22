@@ -65,6 +65,7 @@ def strategy_from(intent, conv):
     return 'MONITOR', 'share AI insights and case studies', 'send domain-specific AI case study', 'Technical Leader / Director', 'linkedin'
 
 # ── Company definitions ────────────────────────────────────────
+# tech_affinity: 1.0 = AI/data/tech company (our ICP), 0.0 = non-tech (never buys)
 COMPANIES = [
     {
         'name': 'Cropin Technology',
@@ -77,6 +78,7 @@ COMPANIES = [
         'internal_tech_strength': 0.65,
         'conversion_bias': 0.7,
         'competitor': False,
+        'tech_affinity': 0.80,  # AI/ML-driven agritech — adjacent field
     },
     {
         'name': 'Bentley Systems',
@@ -89,6 +91,7 @@ COMPANIES = [
         'internal_tech_strength': 0.80,
         'conversion_bias': 0.65,
         'competitor': False,
+        'tech_affinity': 0.70,  # Engineering software, uses data pipelines
     },
     {
         'name': "Dr. Reddy's Laboratories",
@@ -101,6 +104,7 @@ COMPANIES = [
         'internal_tech_strength': 0.70,
         'conversion_bias': 0.75,
         'competitor': False,
+        'tech_affinity': 0.55,  # Pharma — some data ops but not core tech
     },
     {
         'name': 'Clari',
@@ -113,6 +117,7 @@ COMPANIES = [
         'internal_tech_strength': 0.92,
         'conversion_bias': 0.10,
         'competitor': True,
+        'tech_affinity': 1.0,  # Direct competitor — AI/analytics
     },
     {
         'name': 'MindsDB',
@@ -125,6 +130,59 @@ COMPANIES = [
         'internal_tech_strength': 0.85,
         'conversion_bias': 0.88,
         'competitor': False,
+        'tech_affinity': 1.0,  # Perfect ICP — AI/ML, data infra, same field
+    },
+    {
+        'name': 'Deenet Services',
+        'slug': 'deenet-services',
+        'industry': 'IT Services / Digital Solutions',
+        'domain': 'IT Services & Digital Transformation',
+        'size': 'SMALL',
+        'employees': 80,
+        'region': 'India',
+        'internal_tech_strength': 0.40,
+        'conversion_bias': 0.75,
+        'competitor': False,
+        'tech_affinity': 0.85,  # IT services — directly in tech, buys tools
+    },
+    {
+        'name': 'Spotify',
+        'slug': 'spotify',
+        'industry': 'Music Streaming / Entertainment Tech',
+        'domain': 'Audio Streaming & Podcast Platform',
+        'size': 'LARGE',
+        'employees': 9800,
+        'region': 'Stockholm, Sweden',
+        'internal_tech_strength': 0.92,
+        'conversion_bias': 0.55,
+        'competitor': False,
+        'tech_affinity': 0.75,  # Tech company, ML-heavy, data engineering needs
+    },
+    {
+        'name': 'Fathima Stores',
+        'slug': 'fathima-stores',
+        'industry': 'Retail / Grocery',
+        'domain': 'Retail Supermarket Chain',
+        'size': 'SMALL',
+        'employees': 200,
+        'region': 'Kerala, India',
+        'internal_tech_strength': 0.20,
+        'conversion_bias': 0.65,
+        'competitor': False,
+        'tech_affinity': 0.10,  # Retail grocery — would NEVER buy AI infra
+    },
+    {
+        'name': 'MLM Constructions and Products',
+        'slug': 'mlm-constructions',
+        'industry': 'Civil Engineering / Construction',
+        'domain': 'Construction & Building Materials',
+        'size': 'SMALL',
+        'employees': 120,
+        'region': 'California, USA',
+        'internal_tech_strength': 0.25,
+        'conversion_bias': 0.70,
+        'competitor': False,
+        'tech_affinity': 0.10,  # Construction — would NEVER buy AI data tools
     },
 ]
 
@@ -179,7 +237,11 @@ for cfg in COMPANIES:
     deal_sz  = 0.55 if cfg['size'] == 'LARGE' else 0.80
     # Extra bonus for mid companies that come back repeatedly
     recurring_bonus = 0.05 if cfg['size'] in ('MID', 'SMALL') and not is_comp else 0.0
-    opp_sc   = round(0.35 * intent + 0.40 * conv + 0.25 * deal_sz + recurring_bonus, 3) if not is_comp else 0.12
+    raw_score = round(0.35 * intent + 0.40 * conv + 0.25 * deal_sz + recurring_bonus, 3) if not is_comp else 0.12
+    # Tech affinity multiplier: non-tech companies (retail, construction) score near 0
+    # because they would never buy AI data infra tools like Datavex
+    tech_affinity = cfg.get('tech_affinity', 1.0)
+    opp_sc   = round(raw_score * tech_affinity, 3)
     priority = priority_from(int(opp_sc * 100))
     score_int = int(opp_sc * 100) if not is_comp else 12
 

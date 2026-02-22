@@ -47,12 +47,69 @@ def _guess_domain(company_name: str) -> str:
 
 # ── Search-Discover pipeline runner ──────────────────────────
 
+def _quick_scrape_news(company_name: str, domain: str, timeout: int = 10) -> list[dict]:
+    """
+    Fast news scraper using Google News RSS. No browser, no JS, just RSS.
+    Returns list of {text, source, recency_days, verified} dicts.
+    """
+    import urllib.request
+    import xml.etree.ElementTree as ET
+    from datetime import datetime, timezone
+    import re
+
+    signals = []
+    queries = [
+        f"{company_name} funding OR hiring OR product launch OR partnership",
+        f"{company_name} AI OR technology OR data engineering OR cloud migration",
+    ]
+
+    for q in queries:
+        url = f"https://news.google.com/rss/search?q={urllib.parse.quote(q)}&hl=en-US&gl=US&ceid=US:en"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                xml_data = resp.read()
+            root = ET.fromstring(xml_data)
+            for item in root.findall(".//item")[:4]:
+                title = item.findtext("title") or ""
+                pub_date = item.findtext("pubDate") or ""
+                link = item.findtext("link") or ""
+                if len(title) < 10:
+                    continue
+                # Parse date
+                recency = 45
+                for fmt in ["%a, %d %b %Y %H:%M:%S %z", "%a, %d %b %Y %H:%M:%S GMT"]:
+                    try:
+                        dt = datetime.strptime(pub_date.strip(), fmt)
+                        if dt.tzinfo is None:
+                            dt = dt.replace(tzinfo=timezone.utc)
+                        recency = max(1, (datetime.now(timezone.utc) - dt).days)
+                        break
+                    except ValueError:
+                        continue
+                signals.append({
+                    "text": title[:200],
+                    "source": link or "Google News RSS",
+                    "recency_days": recency,
+                    "verified": bool(link),
+                    "verification_source": link,
+                })
+        except Exception as e:
+            logger.warning(f"RSS scrape failed for '{q}': {e}")
+        if len(signals) >= 6:
+            break
+
+    return signals
+
+
 def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
     """
-    Scrape a user-specified company by name + domain, run all 6 agents,
-    and save to DB. Runs in background thread.
+    Analyse a user-specified company, run agents 2-6, and save to DB.
+    Uses cached data if available, otherwise fast RSS news scraping (10s timeout).
+    Runs in a background thread.
     """
     global _active_scan_id
+    import urllib.parse
     db = SessionLocal()
     try:
         scan = db.query(ScanRecord).filter(ScanRecord.id == scan_id).first()
@@ -60,116 +117,121 @@ def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
             return
 
         scan.status       = "running"
-        scan.progress     = 0.05
+        scan.progress     = 0.10
         scan.company_name = company_name
-        scan.agents_pending   = ["SCRAPING", "SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
+        scan.agents_pending   = ["SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
         scan.agents_completed = []
         db.commit()
 
-        # ── Set up paths for scraper imports ─────────────────
-        root        = PROJECT_ROOT
-        scraper_dir = os.path.join(root, "info_gather", "datavex-srivatsa", "info_gather")
+        # ── Set up pipeline dir ────────────────────────────────
         pipeline_dir = PIPELINE_DIR
+        if pipeline_dir not in sys.path:
+            sys.path.insert(0, pipeline_dir)
+        if PROJECT_ROOT not in sys.path:
+            sys.path.insert(0, PROJECT_ROOT)
 
-        for d in [root, scraper_dir, pipeline_dir]:
-            if d not in sys.path:
-                sys.path.insert(0, d)
-
-        # Purge cached modules so fresh imports pick up the right paths
+        # Purge stale module cache
         for mod in list(sys.modules.keys()):
-            if mod.startswith(("agent", "config", "scraper", "scrapers", "knowledge_base", "ollama_client")):
+            if mod.startswith(("agent", "config", "knowledge_base", "ollama_client")):
                 del sys.modules[mod]
 
-        # ── Step 1: Scrape the company ────────────────────────
-        try:
-            from scrape_to_cache import scrape_company
-        except ImportError as e:
-            raise RuntimeError(f"Could not import scrape_to_cache: {e}")
-
-        cfg = {
-            "name":     company_name,
-            "slug":     company_name.lower().replace(" ", "-"),
-            "domain":   domain,
-            "ticker":   None,
-            "careers_url": None,
-            "news_url":    None,
-            "industry":    "Unknown",
-            "domain_display": company_name,
-            "size":     "MID",
-            "employees": 500,
-            "region":   "Unknown",
-            "internal_tech_strength": 0.4,
-            "conversion_bias": 0.6,
-            "competitor": False,
-        }
-
-        scraped = scrape_company(cfg)
-
-        scan.progress     = 0.35
-        scan.agents_completed = ["SCRAPING"]
-        scan.agents_pending   = ["SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
-        db.commit()
-
-        # ── Step 2–6: Run agents on scraped result ────────────
-        import agent2_signals, agent3_scoring, agent4_decision_maker
-        import agent5_outreach, agent6_recommender
-
-        # Inject company into agent2's cache
+        # ── Step 1: Build/get signals for this company ─────────
         cache_path = os.path.join(pipeline_dir, "search_cache.json")
         try:
             with open(cache_path) as f:
                 cache_data = __import__("json").load(f)
         except Exception:
             cache_data = {}
-        cache_data[company_name] = scraped
-        with open(cache_path, "w") as f:
-            __import__("json").dump(cache_data, f, indent=2)
 
-        # Mock candidate object for agent2
-        class _Cand:
-            def __init__(self, name):
-                self.company_name = name
+        if company_name not in cache_data:
+            logger.info(f"'{company_name}' not in search_cache, running fast RSS scrape...")
+            news_signals = _quick_scrape_news(company_name, domain, timeout=10)
+            # Build a minimal cache entry
+            cache_data[company_name] = {
+                "meta": {
+                    "industry": "Unknown",
+                    "size": "MID",
+                    "region": "Unknown",
+                    "employees": 500,
+                    "competitor": False,
+                    "internal_tech_strength": 0.5,
+                    "conversion_bias": 0.6,
+                    "domain_display": company_name,
+                },
+                "signals": {"product": news_signals} if news_signals else {},
+                "decision_makers": [{"name": "", "role": "CTO / VP Engineering"}],
+            }
+            with open(cache_path, "w") as f:
+                __import__("json").dump(cache_data, f, indent=2)
+            logger.info(f"Built {len(news_signals)} RSS signals for '{company_name}'")
+        else:
+            logger.info(f"'{company_name}' found in search_cache — using cached data")
 
-        cands   = [_Cand(company_name)]
-        signals = agent2_signals.run(cands)
+        scan.progress     = 0.35
+        scan.agents_completed = ["DATA_COLLECTION"]
+        scan.agents_pending   = ["SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
+        db.commit()
+
+        # ── Step 2–6: Run agents ─────────────────────────────
+        import agent2_signals, agent3_scoring, agent4_decision_maker
+        import agent5_outreach, agent6_recommender
+
+        # Build candidate object with all fields agents need from cache metadata
+        _meta = cache_data.get(company_name, {}).get("meta", {})
+        _slug = company_name.lower().replace(" ", "-").replace(".", "")
+
+        import types
+        cand_obj = types.SimpleNamespace(
+            company_name           = company_name,
+            size                   = _meta.get("size", "MID"),
+            internal_tech_strength = _meta.get("internal_tech_strength", 0.5),
+            industry               = _meta.get("industry", "Unknown"),
+            region                 = _meta.get("region", "Unknown"),
+            employees              = _meta.get("employees", 500),
+            domain                 = domain,
+            slug                   = _slug,
+        )
+        cands    = [cand_obj]
+        signals  = agent2_signals.run(cands)
 
         scan.progress     = 0.55
-        scan.agents_completed = ["SCRAPING", "SIGNALS"]
+        scan.agents_completed = ["DATA_COLLECTION", "SIGNALS"]
         scan.agents_pending   = ["SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
         db.commit()
 
-        scored   = agent3_scoring.run(cands, signals)
+        scored    = agent3_scoring.run(cands, signals)
         decisions = agent4_decision_maker.run(scored)
 
-        scan.progress     = 0.70
-        scan.agents_completed = ["SCRAPING", "SIGNALS", "SCORING", "DECISION"]
+        scan.progress     = 0.75
+        scan.agents_completed = ["DATA_COLLECTION", "SIGNALS", "SCORING", "DECISION"]
         scan.agents_pending   = ["RECOMMENDER", "OUTREACH"]
         db.commit()
 
-        recs    = agent6_recommender.run(decisions, signals)
+        recs     = agent6_recommender.run(decisions, signals)
         outreach = agent5_outreach.run(decisions, recs, signals)
 
-        scan.progress     = 0.90
-        scan.agents_completed = ["SCRAPING", "SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
+        scan.progress     = 0.92
+        scan.agents_completed = ["DATA_COLLECTION", "SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
         scan.agents_pending   = []
         db.commit()
 
         # ── Assemble & Save ───────────────────────────────────
-        a2 = signals[0]   if signals  else {}
-        a3 = scored[0]    if scored   else {}
+        a2 = signals[0]   if signals   else {}
+        a3 = scored[0]    if scored    else {}
         a4 = decisions[0] if decisions else {}
-        a5 = outreach[0]  if outreach else {}
-        a6 = recs[0]      if recs     else {}
+        a5 = outreach[0]  if outreach  else {}
+        a6 = recs[0]      if recs      else {}
 
         opp_score = a3.get("opportunity_score", 0.5) if isinstance(a3, dict) else 0.5
-        priority  = a3.get("priority", "LOW")  if isinstance(a3, dict) else "LOW"
+        priority  = a3.get("priority", "LOW")         if isinstance(a3, dict) else "LOW"
         score_int_val = _score_int(opp_score)
-        confidence = _priority_to_confidence(priority)
+        confidence    = _priority_to_confidence(priority)
+
         slug = company_name.lower().replace(" ", "-").replace(".", "")
 
-        paint_level = a2.get("pain_level", "LOW") if isinstance(a2, dict) else "LOW"
-        key_signals = a3.get("key_signals", [])   if isinstance(a3, dict) else []
-        intent      = a3.get("intent_score", 0.5) if isinstance(a3, dict) else 0.5
+        paint_level = a2.get("pain_level", "LOW")  if isinstance(a2, dict) else "LOW"
+        key_signals = a3.get("key_signals", [])    if isinstance(a3, dict) else []
+        intent      = a3.get("intent_score", 0.5)  if isinstance(a3, dict) else 0.5
         conv        = a3.get("conversion_score", 0.5) if isinstance(a3, dict) else 0.5
         deal_sz     = a3.get("deal_size_score", 0.5)  if isinstance(a3, dict) else 0.5
         expansion   = a3.get("expansion_score", 0.3)  if isinstance(a3, dict) else 0.3
@@ -180,35 +242,43 @@ def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
         channel     = a5.get("channel", "")           if isinstance(a5, dict) else ""
         subject     = a5.get("subject", "")           if isinstance(a5, dict) else ""
         message     = a5.get("message", "")           if isinstance(a5, dict) else ""
-        descriptor  = f"{cfg['industry']} · {cfg['employees']} employees · {cfg['size']} · {cfg['region']}"
 
+        cache_entry = cache_data.get(company_name, {})
+        meta = cache_entry.get("meta", {})
+        industry = meta.get("industry", "Unknown")
+        size     = meta.get("size", "MID")
+        region   = meta.get("region", "Unknown")
+        employees = meta.get("employees", 500)
+
+        descriptor = f"{industry} · {employees} employees · {size} · {region}"
         receptivity_map = {"HIGH": "HIGH — ACT WITHIN 90 DAYS", "MEDIUM": "MODERATE — ACT WITHIN 6 MONTHS", "LOW": "LOW — MONITOR"}
+
         new_data = {
             "descriptor":  descriptor,
             "receptivity": receptivity_map.get(priority, "LOW — MONITOR"),
             "pain_level":  paint_level,
             "pain_tags":   [paint_level + " PAIN"],
             "competitor":  False,
-            "agent1": {"company_name": company_name, "domain": domain, "industry": cfg["industry"], "size": cfg["size"], "estimated_employees": cfg["employees"], "region": cfg["region"]},
+            "agent1": {"company_name": company_name, "domain": domain, "industry": industry, "size": size, "estimated_employees": employees, "region": region},
             "agent2": {"fit_type": "TARGET", "company_state": "SCALE_UP", "expansion_score": a2.get("expansion_score", 0) if isinstance(a2, dict) else 0, "strain_score": a2.get("strain_score", 0) if isinstance(a2, dict) else 0, "risk_score": a2.get("risk_score", 0) if isinstance(a2, dict) else 0, "pain_score": a2.get("pain_score", 0) if isinstance(a2, dict) else 0, "pain_level": paint_level, "signals": a2.get("signals", []) if isinstance(a2, dict) else []},
             "agent3": {"priority": priority, "opportunity_score": opp_score, "intent_score": intent, "conversion_score": conv, "deal_size_score": deal_sz, "expansion_score": expansion, "strain_score": a2.get("strain_score", 0) if isinstance(a2, dict) else 0, "risk_score": a3.get("risk_score", 0) if isinstance(a3, dict) else 0, "key_signals": key_signals, "summary": a3.get("summary", "") if isinstance(a3, dict) else "", "llm_reasoning": a3.get("llm_reasoning", "") if isinstance(a3, dict) else ""},
-            "agent35": {"buying_style": strategy, "tech_strength": cfg["internal_tech_strength"], "offer": offer, "entry_point": entry_pt, "strategy_note": f"{company_name} → {strategy}"},
+            "agent35": {"buying_style": strategy, "tech_strength": meta.get("internal_tech_strength", 0.5), "offer": offer, "entry_point": entry_pt, "strategy_note": f"{company_name} → {strategy}"},
             "agent4": {"priority": priority, "strategy": strategy, "recommended_offer": offer, "entry_point": entry_pt, "intent_score": intent, "conversion_score": conv, "deal_size_score": deal_sz, "risk_score": 0.05, "key_signals": key_signals},
             "agent5": {"persona": persona, "channel": channel, "subject": subject, "message": message, "priority": priority, "conversion_score": conv, "deal_size_score": deal_sz},
             "agent6": a6 if isinstance(a6, dict) else {},
             "financials": {"quarters": [], "margin": [], "revenue": []}, "hiring": [],
             "scoreBreakdown": [{"label": "Intent", "value": int(intent * 35), "max": 35}, {"label": "Conversion", "value": int(conv * 25), "max": 25}, {"label": "Deal Size", "value": int(deal_sz * 20), "max": 20}, {"label": "Signal Depth", "value": int(expansion * 20), "max": 20}],
             "timeline": [], "painClusters": [],
-            "decisionMaker": {"name": company_name, "role": persona, "messaging": {"angle": offer, "vocab": key_signals, "tone": strategy.lower()}},
+            "decisionMaker": {"name": "", "role": persona, "messaging": {"angle": offer, "vocab": key_signals, "tone": strategy.lower()}},
             "outreach": {"email": message, "linkedin": message, "opener": subject, "footnote": f"Channel: {channel}"},
             "capabilityMatch": [], "strongestMatch": {},
             "trace": [
-                {"time": "00:01", "agent": "SCRAPER",       "action": f"Scraped {domain} — press releases, tech stack, financials"},
+                {"time": "00:01", "agent": "DATA_COLLECTION", "action": f"Sources: search_cache.json + Google News RSS for '{company_name}'"},
                 {"time": "00:05", "agent": "SIGNAL_EXTRACTION", "action": f"Pain: {paint_level} | Key signals: {', '.join(key_signals)}"},
-                {"time": "00:10", "agent": "OPPORTUNITY_SCORING","action": f"Score: {score_int_val}/100, Priority: {priority}"},
-                {"time": "00:14", "agent": "DECISION_MAKER",  "action": f"Strategy: {strategy} → {offer}"},
-                {"time": "00:18", "agent": "RECOMMENDER",    "action": f"Lead service: {a6.get('lead_service', '?') if isinstance(a6, dict) else '?'} ({a6.get('confidence', '?') if isinstance(a6, dict) else '?'})"},
-                {"time": "00:24", "agent": "OUTREACH",       "action": f"Persona: {persona} · Channel: {channel}"},
+                {"time": "00:10", "agent": "OPPORTUNITY_SCORING", "action": f"Score: {score_int_val}/100, Priority: {priority}"},
+                {"time": "00:14", "agent": "DECISION_MAKER", "action": f"Strategy: {strategy} → {offer}"},
+                {"time": "00:18", "agent": "RECOMMENDER", "action": f"Lead service: {a6.get('lead_service', '?') if isinstance(a6, dict) else '?'}"},
+                {"time": "00:24", "agent": "OUTREACH", "action": f"Persona: {persona} · Channel: {channel}"},
             ],
         }
 
@@ -225,7 +295,6 @@ def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
                                   data=new_data, created_at=utcnow(), updated_at=utcnow()))
         db.commit()
 
-        # Store the slug so frontend can navigate
         scan.company_name = f"DONE:{slug}"
         scan.status       = "completed"
         scan.progress     = 1.0

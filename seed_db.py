@@ -16,6 +16,13 @@ from app.database import SessionLocal, CompanyRecord, Base, engine
 from sqlalchemy.orm.attributes import flag_modified
 from datetime import datetime, timezone
 
+# Agent 6 — RAG recommender (optional, graceful if unavailable)
+try:
+    import agent6_recommender
+    HAS_AGENT6 = True
+except ImportError:
+    HAS_AGENT6 = False
+
 def utcnow():
     return datetime.now(timezone.utc)
 
@@ -107,6 +114,43 @@ COMPANIES = [
         'conversion_bias': 0.10,
         'competitor': True,
     },
+    # ── PRIMARY TARGETS (from search_cache.json) ──────────────
+    {
+        'name': 'Fractal Analytics',
+        'slug': 'fractal-analytics',
+        'industry': 'AI Analytics',
+        'domain': 'AI Analytics & Data Science Services',
+        'size': 'LARGE',
+        'employees': 4000,
+        'region': 'India / USA',
+        'internal_tech_strength': 0.78,
+        'conversion_bias': 0.82,
+        'competitor': False,
+    },
+    {
+        'name': 'Databricks',
+        'slug': 'databricks',
+        'industry': 'AI Analytics',
+        'domain': 'Data Intelligence Platform',
+        'size': 'LARGE',
+        'employees': 9000,
+        'region': 'San Francisco, CA, USA',
+        'internal_tech_strength': 0.95,
+        'conversion_bias': 0.72,
+        'competitor': False,
+    },
+    {
+        'name': 'MindsDB',
+        'slug': 'mindsdb',
+        'industry': 'AI/ML Database',
+        'domain': 'AI-in-Database Platform',
+        'size': 'MID',
+        'employees': 100,
+        'region': 'San Francisco, CA, USA',
+        'internal_tech_strength': 0.85,
+        'conversion_bias': 0.88,
+        'competitor': False,
+    },
 ]
 
 db = SessionLocal()
@@ -123,6 +167,9 @@ for cfg in COMPANIES:
     meta    = entry.get('meta', {})
     dms     = entry.get('decision_makers', [])
     dm      = dms[0] if dms else {}
+    # LLM-generated intel (from scrape_to_cache.py, if API key configured)
+    llm_persona  = entry.get('llm_persona', {})
+    llm_outreach = entry.get('llm_outreach', {})
 
     enriched = []
     for cat, items in raw_sigs.items():
@@ -162,11 +209,16 @@ for cfg in COMPANIES:
         strategy, offer, entry_pt, persona_def, channel = 'AVOID', 'Do not target', 'N/A', 'N/A', 'none'
 
     dm_name = dm.get('name', '')
-    dm_role = dm.get('role', persona_def)
+    # Use LLM persona role if available, else fall back to strategy template
+    dm_role = llm_persona.get('role') or dm.get('role', persona_def)
 
     if is_comp:
         message = "[COMPETITOR — DO NOT OUTREACH]\n\n" + name + " builds AI-powered revenue intelligence — directly overlapping with Datavex's core offering.\n\nUse as competitive benchmark only."
         subject = f"[COMPETITOR] {name} — competitive analysis only"
+    elif llm_outreach.get('email'):
+        # █ LLM-generated outreach (grounded in scraped signals)
+        message  = llm_outreach['email']
+        subject  = llm_outreach.get('subject', f"{name} — quick idea on {entry_pt}")
     else:
         sig_map = {
             'HIRING':'rapid hiring and team expansion','FUNDING':'recent funding and capital deployment',
@@ -207,17 +259,59 @@ Would it be useful to start with a quick 20-min call?
         'signal_counts': {'verified': sum(1 for s in enriched if s.get('verified')), 'unverified': sum(1 for s in enriched if not s.get('verified')), 'total': len(enriched)},
         'agent1': {'company_name':name,'domain':cfg['domain'],'industry':cfg['industry'],'size':cfg['size'],'estimated_employees':cfg['employees'],'region':cfg['region']},
         'agent2': {'fit_type':'COMPETITOR' if is_comp else 'TARGET','company_state':'MATURE' if is_comp else 'SCALE_UP','expansion_score':expansion,'strain_score':min(1.0,strain),'risk_score':risk,'pain_score':pain_score,'pain_level':pain_level,'signals':enriched},
-        'agent3': {'priority':priority,'opportunity_score':opp_sc,'intent_score':intent,'conversion_score':conv,'deal_size_score':deal_sz,'expansion_score':expansion,'strain_score':min(1.0,strain),'risk_score':risk,'key_signals':key_signals,'summary':f"{name} shows {int(intent*100)}% intent, {int(conv*100)}% conversion, {int(deal_sz*100)}% deal size. Key signals: {' | '.join(key_signals)}."},
+        'agent3': {
+            'priority': priority, 'opportunity_score': opp_sc,
+            'intent_score': intent, 'conversion_score': conv,
+            'deal_size_score': deal_sz, 'expansion_score': expansion,
+            'strain_score': min(1.0, strain), 'risk_score': risk,
+            'key_signals': key_signals,
+            'summary': f"{name} shows {int(intent*100)}% intent, {int(conv*100)}% conversion, {int(deal_sz*100)}% deal size. Key signals: {' | '.join(key_signals)}.",
+            'llm_reasoning': entry.get('llm_reasoning', ''),   # from scrape_to_cache LLM run
+        },
         'agent35': {'buying_style':strategy,'tech_strength':cfg['internal_tech_strength'],'offer':offer,'entry_point':entry_pt,'strategy_note':f"{name} → {strategy}"},
         'agent4': {'priority':priority,'strategy':strategy,'recommended_offer':offer,'entry_point':entry_pt,'intent_score':intent,'conversion_score':conv,'deal_size_score':deal_sz,'risk_score':risk,'key_signals':key_signals},
-        'agent5': {'persona':dm_role,'channel':channel,'subject':subject,'message':message,'priority':priority,'conversion_score':conv,'deal_size_score':deal_sz},
+        'agent5': {
+            'persona': dm_role,
+            'channel': channel,
+            'subject': subject,
+            'message': message,
+            'linkedin_dm': llm_outreach.get('linkedin_dm', ''),
+            'llm_generated': bool(llm_outreach.get('email')),
+            'priority': priority,
+            'conversion_score': conv,
+            'deal_size_score': deal_sz,
+        },
         'financials': {'quarters':[],'margin':[],'revenue':[]}, 'hiring': [],
         'scoreBreakdown': [{'label':'Intent','value':int(intent*35),'max':35},{'label':'Conversion','value':int(conv*25),'max':25},{'label':'Deal Size','value':int(deal_sz*20),'max':20},{'label':'Signal Depth','value':int(expansion*20),'max':20}],
         'timeline': [], 'painClusters': [],
         'decisionMaker': {'name':dm_name,'role':dm_role,'messaging':{'angle':offer,'vocab':key_signals,'tone':strategy.lower()}},
         'outreach': {'email':message if not is_comp else '','opener':subject,'footnote':f"Channel: {channel}"},
         'capabilityMatch': [], 'strongestMatch': {}, 'trace': trace,
+        'agent6': {},
     }
+
+    # ── Agent 6: What to Sell (RAG + Ollama) ──────────────
+    if HAS_AGENT6 and not is_comp:
+        try:
+            a4_decision = [{
+                'company_name': name, 'strategy': strategy,
+                'recommended_offer': offer, 'entry_point': entry_pt,
+                'intent_score': intent, 'conversion_score': conv,
+                'deal_size_score': deal_sz, 'risk_score': 0.05,
+                'priority': priority, 'key_signals': key_signals,
+            }]
+            a2_sig = [{
+                'company_name': name, 'company_state': 'SCALE_UP',
+                'meta': {'industry': cfg['industry'], 'size': cfg['size']},
+                'pain_level': 'HIGH' if priority == 'HIGH' else 'MEDIUM',
+                'signals': enriched[:5],
+            }]
+            a6_results = agent6_recommender.run(a4_decision, a2_sig)
+            if a6_results:
+                new_data['agent6'] = a6_results[0]
+                print(f"  Agent6: {a6_results[0].get('lead_service','?')} ({a6_results[0].get('confidence','?')})")
+        except Exception as e:
+            print(f"  Agent6 failed: {e}")
 
     existing = db.query(CompanyRecord).filter(CompanyRecord.id == slug).first()
     if existing:

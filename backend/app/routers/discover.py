@@ -36,6 +36,219 @@ def _score_int(opportunity_score: float) -> int:
     return max(0, min(100, int(round(opportunity_score * 100))))
 
 
+def _guess_domain(company_name: str) -> str:
+    """Best-effort domain guess from company name."""
+    slug = company_name.lower()
+    slug = slug.replace("&", "and")
+    import re
+    slug = re.sub(r"[^a-z0-9]+", "", slug)
+    return f"{slug}.com"
+
+
+# ── Search-Discover pipeline runner ──────────────────────────
+
+def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
+    """
+    Scrape a user-specified company by name + domain, run all 6 agents,
+    and save to DB. Runs in background thread.
+    """
+    global _active_scan_id
+    db = SessionLocal()
+    try:
+        scan = db.query(ScanRecord).filter(ScanRecord.id == scan_id).first()
+        if not scan:
+            return
+
+        scan.status       = "running"
+        scan.progress     = 0.05
+        scan.company_name = company_name
+        scan.agents_pending   = ["SCRAPING", "SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
+        scan.agents_completed = []
+        db.commit()
+
+        # ── Set up paths for scraper imports ─────────────────
+        root        = PROJECT_ROOT
+        scraper_dir = os.path.join(root, "info_gather", "datavex-srivatsa", "info_gather")
+        pipeline_dir = PIPELINE_DIR
+
+        for d in [root, scraper_dir, pipeline_dir]:
+            if d not in sys.path:
+                sys.path.insert(0, d)
+
+        # Purge cached modules so fresh imports pick up the right paths
+        for mod in list(sys.modules.keys()):
+            if mod.startswith(("agent", "config", "scraper", "scrapers", "knowledge_base", "ollama_client")):
+                del sys.modules[mod]
+
+        # ── Step 1: Scrape the company ────────────────────────
+        try:
+            from scrape_to_cache import scrape_company
+        except ImportError as e:
+            raise RuntimeError(f"Could not import scrape_to_cache: {e}")
+
+        cfg = {
+            "name":     company_name,
+            "slug":     company_name.lower().replace(" ", "-"),
+            "domain":   domain,
+            "ticker":   None,
+            "careers_url": None,
+            "news_url":    None,
+            "industry":    "Unknown",
+            "domain_display": company_name,
+            "size":     "MID",
+            "employees": 500,
+            "region":   "Unknown",
+            "internal_tech_strength": 0.4,
+            "conversion_bias": 0.6,
+            "competitor": False,
+        }
+
+        scraped = scrape_company(cfg)
+
+        scan.progress     = 0.35
+        scan.agents_completed = ["SCRAPING"]
+        scan.agents_pending   = ["SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
+        db.commit()
+
+        # ── Step 2–6: Run agents on scraped result ────────────
+        import agent2_signals, agent3_scoring, agent4_decision_maker
+        import agent5_outreach, agent6_recommender
+
+        # Inject company into agent2's cache
+        cache_path = os.path.join(pipeline_dir, "search_cache.json")
+        try:
+            with open(cache_path) as f:
+                cache_data = __import__("json").load(f)
+        except Exception:
+            cache_data = {}
+        cache_data[company_name] = scraped
+        with open(cache_path, "w") as f:
+            __import__("json").dump(cache_data, f, indent=2)
+
+        # Mock candidate object for agent2
+        class _Cand:
+            def __init__(self, name):
+                self.company_name = name
+
+        cands   = [_Cand(company_name)]
+        signals = agent2_signals.run(cands)
+
+        scan.progress     = 0.55
+        scan.agents_completed = ["SCRAPING", "SIGNALS"]
+        scan.agents_pending   = ["SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
+        db.commit()
+
+        scored   = agent3_scoring.run(cands, signals)
+        decisions = agent4_decision_maker.run(scored)
+
+        scan.progress     = 0.70
+        scan.agents_completed = ["SCRAPING", "SIGNALS", "SCORING", "DECISION"]
+        scan.agents_pending   = ["RECOMMENDER", "OUTREACH"]
+        db.commit()
+
+        recs    = agent6_recommender.run(decisions, signals)
+        outreach = agent5_outreach.run(decisions, recs, signals)
+
+        scan.progress     = 0.90
+        scan.agents_completed = ["SCRAPING", "SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
+        scan.agents_pending   = []
+        db.commit()
+
+        # ── Assemble & Save ───────────────────────────────────
+        a2 = signals[0]   if signals  else {}
+        a3 = scored[0]    if scored   else {}
+        a4 = decisions[0] if decisions else {}
+        a5 = outreach[0]  if outreach else {}
+        a6 = recs[0]      if recs     else {}
+
+        opp_score = a3.get("opportunity_score", 0.5) if isinstance(a3, dict) else 0.5
+        priority  = a3.get("priority", "LOW")  if isinstance(a3, dict) else "LOW"
+        score_int_val = _score_int(opp_score)
+        confidence = _priority_to_confidence(priority)
+        slug = company_name.lower().replace(" ", "-").replace(".", "")
+
+        paint_level = a2.get("pain_level", "LOW") if isinstance(a2, dict) else "LOW"
+        key_signals = a3.get("key_signals", [])   if isinstance(a3, dict) else []
+        intent      = a3.get("intent_score", 0.5) if isinstance(a3, dict) else 0.5
+        conv        = a3.get("conversion_score", 0.5) if isinstance(a3, dict) else 0.5
+        deal_sz     = a3.get("deal_size_score", 0.5)  if isinstance(a3, dict) else 0.5
+        expansion   = a3.get("expansion_score", 0.3)  if isinstance(a3, dict) else 0.3
+        strategy    = a4.get("strategy", "MONITOR")   if isinstance(a4, dict) else "MONITOR"
+        offer       = a4.get("recommended_offer", "") if isinstance(a4, dict) else ""
+        entry_pt    = a4.get("entry_point", "")       if isinstance(a4, dict) else ""
+        persona     = a5.get("persona", "")           if isinstance(a5, dict) else ""
+        channel     = a5.get("channel", "")           if isinstance(a5, dict) else ""
+        subject     = a5.get("subject", "")           if isinstance(a5, dict) else ""
+        message     = a5.get("message", "")           if isinstance(a5, dict) else ""
+        descriptor  = f"{cfg['industry']} · {cfg['employees']} employees · {cfg['size']} · {cfg['region']}"
+
+        receptivity_map = {"HIGH": "HIGH — ACT WITHIN 90 DAYS", "MEDIUM": "MODERATE — ACT WITHIN 6 MONTHS", "LOW": "LOW — MONITOR"}
+        new_data = {
+            "descriptor":  descriptor,
+            "receptivity": receptivity_map.get(priority, "LOW — MONITOR"),
+            "pain_level":  paint_level,
+            "pain_tags":   [paint_level + " PAIN"],
+            "competitor":  False,
+            "agent1": {"company_name": company_name, "domain": domain, "industry": cfg["industry"], "size": cfg["size"], "estimated_employees": cfg["employees"], "region": cfg["region"]},
+            "agent2": {"fit_type": "TARGET", "company_state": "SCALE_UP", "expansion_score": a2.get("expansion_score", 0) if isinstance(a2, dict) else 0, "strain_score": a2.get("strain_score", 0) if isinstance(a2, dict) else 0, "risk_score": a2.get("risk_score", 0) if isinstance(a2, dict) else 0, "pain_score": a2.get("pain_score", 0) if isinstance(a2, dict) else 0, "pain_level": paint_level, "signals": a2.get("signals", []) if isinstance(a2, dict) else []},
+            "agent3": {"priority": priority, "opportunity_score": opp_score, "intent_score": intent, "conversion_score": conv, "deal_size_score": deal_sz, "expansion_score": expansion, "strain_score": a2.get("strain_score", 0) if isinstance(a2, dict) else 0, "risk_score": a3.get("risk_score", 0) if isinstance(a3, dict) else 0, "key_signals": key_signals, "summary": a3.get("summary", "") if isinstance(a3, dict) else "", "llm_reasoning": a3.get("llm_reasoning", "") if isinstance(a3, dict) else ""},
+            "agent35": {"buying_style": strategy, "tech_strength": cfg["internal_tech_strength"], "offer": offer, "entry_point": entry_pt, "strategy_note": f"{company_name} → {strategy}"},
+            "agent4": {"priority": priority, "strategy": strategy, "recommended_offer": offer, "entry_point": entry_pt, "intent_score": intent, "conversion_score": conv, "deal_size_score": deal_sz, "risk_score": 0.05, "key_signals": key_signals},
+            "agent5": {"persona": persona, "channel": channel, "subject": subject, "message": message, "priority": priority, "conversion_score": conv, "deal_size_score": deal_sz},
+            "agent6": a6 if isinstance(a6, dict) else {},
+            "financials": {"quarters": [], "margin": [], "revenue": []}, "hiring": [],
+            "scoreBreakdown": [{"label": "Intent", "value": int(intent * 35), "max": 35}, {"label": "Conversion", "value": int(conv * 25), "max": 25}, {"label": "Deal Size", "value": int(deal_sz * 20), "max": 20}, {"label": "Signal Depth", "value": int(expansion * 20), "max": 20}],
+            "timeline": [], "painClusters": [],
+            "decisionMaker": {"name": company_name, "role": persona, "messaging": {"angle": offer, "vocab": key_signals, "tone": strategy.lower()}},
+            "outreach": {"email": message, "linkedin": message, "opener": subject, "footnote": f"Channel: {channel}"},
+            "capabilityMatch": [], "strongestMatch": {},
+            "trace": [
+                {"time": "00:01", "agent": "SCRAPER",       "action": f"Scraped {domain} — press releases, tech stack, financials"},
+                {"time": "00:05", "agent": "SIGNAL_EXTRACTION", "action": f"Pain: {paint_level} | Key signals: {', '.join(key_signals)}"},
+                {"time": "00:10", "agent": "OPPORTUNITY_SCORING","action": f"Score: {score_int_val}/100, Priority: {priority}"},
+                {"time": "00:14", "agent": "DECISION_MAKER",  "action": f"Strategy: {strategy} → {offer}"},
+                {"time": "00:18", "agent": "RECOMMENDER",    "action": f"Lead service: {a6.get('lead_service', '?') if isinstance(a6, dict) else '?'} ({a6.get('confidence', '?') if isinstance(a6, dict) else '?'})"},
+                {"time": "00:24", "agent": "OUTREACH",       "action": f"Persona: {persona} · Channel: {channel}"},
+            ],
+        }
+
+        from sqlalchemy.orm.attributes import flag_modified
+        existing = db.query(CompanyRecord).filter(CompanyRecord.id == slug).first()
+        if existing:
+            existing.score = score_int_val; existing.confidence = confidence
+            existing.coverage = int(expansion * 100); existing.descriptor = descriptor
+            existing.data = new_data; existing.updated_at = utcnow()
+            flag_modified(existing, "data")
+        else:
+            db.add(CompanyRecord(id=slug, scan_id=scan_id, name=company_name, descriptor=descriptor,
+                                  score=score_int_val, confidence=confidence, coverage=int(expansion * 100),
+                                  data=new_data, created_at=utcnow(), updated_at=utcnow()))
+        db.commit()
+
+        # Store the slug so frontend can navigate
+        scan.company_name = f"DONE:{slug}"
+        scan.status       = "completed"
+        scan.progress     = 1.0
+        scan.completed_at = utcnow()
+        db.commit()
+        logger.info(f"Search-discover complete: {company_name} (slug={slug}, score={score_int_val})")
+
+    except Exception as e:
+        logger.error(f"Search-discover pipeline error: {e}", exc_info=True)
+        try:
+            scan = db.query(ScanRecord).filter(ScanRecord.id == scan_id).first()
+            if scan:
+                scan.status = "failed"; scan.error_message = str(e)[:500]
+                db.commit()
+        except Exception:
+            pass
+    finally:
+        db.close()
+        _active_scan_id = None
+        _scan_lock.release()
+
+
+
 # ── Pipeline runner ──────────────────────────────────────────
 
 def _run_discovery_pipeline(scan_id: str):
@@ -319,7 +532,62 @@ def _run_discovery_pipeline(scan_id: str):
 
 # ── Routes ────────────────────────────────────────────────────
 
+from pydantic import BaseModel
+
+class SearchDiscoverRequest(BaseModel):
+    company_name: str
+    domain: str | None = None
+
+
+@router.post("/companies/search-discover")
+def search_discover(req: SearchDiscoverRequest, db: Session = Depends(get_db)):
+    """
+    Scrape and analyse a user-specified company by name.
+    Runs the full scraper + 6-agent pipeline in background.
+    Returns scan_id for polling. Status 'completed' means slug ready in company_name field.
+    """
+    global _active_scan_id
+
+    if not _scan_lock.acquire(blocking=False):
+        raise HTTPException(
+            status_code=429,
+            detail=f"A scan is already running ({_active_scan_id}). Wait for it to finish.",
+        )
+
+    company_name = req.company_name.strip()
+    domain = req.domain or _guess_domain(company_name)
+
+    scan_id = new_uuid()
+    _active_scan_id = scan_id
+
+    scan = ScanRecord(
+        id           = scan_id,
+        user_request = f"Search-discover: {company_name}",
+        status       = "queued",
+        progress     = 0.0,
+        created_at   = utcnow(),
+    )
+    db.add(scan)
+    db.commit()
+
+    threading.Thread(
+        target=_run_search_discover_pipeline,
+        args=(company_name, domain, scan_id),
+        daemon=True,
+    ).start()
+
+    logger.info(f"Search-discover queued: {company_name} @ {domain} — scan_id={scan_id}")
+    return {
+        "scan_id":  scan_id,
+        "status":   "queued",
+        "company":  company_name,
+        "domain":   domain,
+        "message":  "Scraping and analysing...",
+    }
+
+
 @router.post("/discover")
+
 def trigger_discovery(db: Session = Depends(get_db)):
     """
     Auto-discover target companies using the 5-agent pipeline.

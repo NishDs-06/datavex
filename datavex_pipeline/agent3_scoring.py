@@ -108,24 +108,77 @@ def run(candidates, signals):
             key_signals = key_signals[:3]
 
         # ---------------------------------------------------
+        # LLM REASONING (additive — new field only)
+        # ---------------------------------------------------
+        llm_reasoning = _generate_reasoning(c.company_name, {
+            "priority":         priority,
+            "opportunity_score": score,
+            "intent_score":     intent,
+            "conversion_score": conversion,
+            "deal_size_score":  deal_size,
+            "expansion_score":  expansion,
+            "strain_score":     strain,
+            "key_signals":      key_signals,
+        })
+
+        # ---------------------------------------------------
         # OUTPUT OBJECT
         # ---------------------------------------------------
         results.append({
-            "company_name": c.company_name,
-            "priority": priority,
+            "company_name":     c.company_name,
+            "priority":         priority,
             "opportunity_score": score,
 
-            "intent_score": intent,
+            "intent_score":     intent,
             "conversion_score": conversion,
-            "deal_size_score": deal_size,
+            "deal_size_score":  deal_size,
 
-            "expansion_score": expansion,
-            "strain_score": strain,
-            "risk_score": risk,
+            "expansion_score":  expansion,
+            "strain_score":     strain,
+            "risk_score":       risk,
 
-            "key_signals": key_signals,   # ← THIS FIXES YOUR BUG
+            "key_signals":      key_signals,
 
-            "summary": summary
+            "summary":          summary,
+            "llm_reasoning":    llm_reasoning,   # ← additive new field
         })
 
     return results
+
+
+# ---------------------------------------------------
+# LLM REASONING HELPER (called per company after rules)
+# ---------------------------------------------------
+
+def _generate_reasoning(company_name: str, scores: dict) -> str:
+    """
+    Ask Ollama to explain WHY this company scored the way it did.
+    Returns 2-3 sentence string. Falls back to 'LLM unavailable' if Ollama down.
+    Never replaces or modifies any score fields.
+    """
+    try:
+        from ollama_client import ollama_call
+    except ImportError:
+        return "LLM unavailable"
+
+    prompt = (
+        f"Company: {company_name}\n"
+        f"Opportunity score: {scores['opportunity_score']:.2f} / 1.0\n"
+        f"Priority: {scores['priority']}\n"
+        f"Intent: {scores['intent_score']:.2f}  "
+        f"Conversion: {scores['conversion_score']:.2f}  "
+        f"Deal size: {scores['deal_size_score']:.2f}\n"
+        f"Expansion: {scores['expansion_score']:.2f}  "
+        f"Strain: {scores['strain_score']:.2f}\n"
+        f"Key signals: {', '.join(scores.get('key_signals', []))}\n\n"
+        "In 2-3 concise sentences, explain WHY this company received this opportunity score. "
+        "Be specific about which scores drive the priority. Do not invent facts. "
+        "Write in plain English, no bullet points."
+    )
+
+    result = ollama_call(prompt, model="llama3.1", timeout=20)
+    if not result:
+        return "LLM unavailable"
+    # Clean up excessive whitespace
+    import re
+    return re.sub(r"\s+", " ", result).strip()

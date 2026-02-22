@@ -207,16 +207,76 @@ def compute_pain(expansion, strain, risk):
 
 
 # ---------------------------------------------------
+# LLM SIGNAL CONFIDENCE (additive post-processing)
+# ---------------------------------------------------
+
+def _validate_signal_confidence(company_name: str, industry: str, signals: list) -> list:
+    """
+    Call Ollama to rate each signal's credibility for this company.
+    Returns signals with 'llm_confidence' added: VERIFIED | PLAUSIBLE | UNVERIFIED
+    Falls back gracefully — marks all UNVERIFIED if Ollama unavailable.
+    Rules always ran first; this is purely additive.
+    """
+    try:
+        from ollama_client import ollama_call, ollama_available
+    except ImportError:
+        for s in signals:
+            s["llm_confidence"] = "UNVERIFIED"
+        return signals
+
+    if not signals:
+        return signals
+
+    # Batch all signals in one call to avoid N requests per company
+    signal_list = "\n".join(
+        f"{i+1}. [{s['type']}] {s.get('text', '')[:120]}"
+        for i, s in enumerate(signals)
+    )
+
+    prompt = (
+        f"Company: {company_name}\n"
+        f"Industry: {industry}\n\n"
+        f"The following signals were detected about this company:\n{signal_list}\n\n"
+        "For each signal, rate its credibility as exactly one of: VERIFIED, PLAUSIBLE, or UNVERIFIED.\n"
+        "VERIFIED = directly confirms a real event. PLAUSIBLE = consistent but indirect. UNVERIFIED = uncertain.\n"
+        "Reply with ONLY a JSON array in this exact format:\n"
+        '[{"index": 1, "confidence": "VERIFIED"}, {"index": 2, "confidence": "PLAUSIBLE"}, ...]'
+    )
+
+    result = ollama_call(prompt, model="llama3.1", timeout=25, expect_json=False)
+
+    # Parse numbered confidence array from response
+    confidence_map = {}
+    if result:
+        try:
+            import re, json as _json
+            # Try to find JSON array
+            arr_match = re.search(r"\[[\s\S]+?\]", result)
+            if arr_match:
+                parsed = _json.loads(arr_match.group(0))
+                for item in parsed:
+                    idx = int(item.get("index", 0)) - 1
+                    conf = item.get("confidence", "UNVERIFIED").upper()
+                    if conf in {"VERIFIED", "PLAUSIBLE", "UNVERIFIED"}:
+                        confidence_map[idx] = conf
+        except Exception:
+            pass
+
+    for i, s in enumerate(signals):
+        s["llm_confidence"] = confidence_map.get(i, "UNVERIFIED")
+
+    return signals
+
+
+# ---------------------------------------------------
 # MAIN RUN
 # ---------------------------------------------------
 
 def run(candidates):
-
     cache = load_cache()
     results = []
 
     for c in candidates:
-
         evidence = collect_evidence(cache, c.company_name)
         raw = extract_signals(evidence)
         signals = dedup(raw)
@@ -231,19 +291,24 @@ def run(candidates):
         else:
             level = "LOW"
 
+        # ── LLM: validate each signal's credibility (additive) ──
+        industry = cache.get(c.company_name, {}).get("meta", {}).get("industry", "")
+        signals = _validate_signal_confidence(c.company_name, industry, signals)
+
         results.append({
-            "company_name": c.company_name,
-            "fit_type": "TARGET",
-            "company_state": "SCALE_UP",
+            "company_name":   c.company_name,
+            "fit_type":       "TARGET",
+            "company_state":  "SCALE_UP",
 
             "expansion_score": round(expansion, 3),
-            "strain_score": round(strain, 3),
-            "risk_score": round(risk, 3),
+            "strain_score":    round(strain, 3),
+            "risk_score":      round(risk, 3),
 
-            "pain_score": pain,
-            "pain_level": level,
+            "pain_score":  pain,
+            "pain_level":  level,
 
-            "signals": signals
+            # signals now include 'llm_confidence' per item (additive only)
+            "signals": signals,
         })
 
     return results

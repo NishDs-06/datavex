@@ -6,13 +6,7 @@ import httpx
 import logging
 import re
 from bs4 import BeautifulSoup
-try:
-    from duckduckgo_search import DDGS
-    _DDGS_AVAILABLE = True
-except ImportError:
-    _DDGS_AVAILABLE = False
-    logger = __import__('logging').getLogger(__name__)
-    logger.warning("duckduckgo_search not installed — live search disabled, using cache only")
+from duckduckgo_search import DDGS
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +52,6 @@ def search_web(query: str, max_results: int = 8) -> list[dict]:
     Search the web via DuckDuckGo and return results.
     Each result has: title, href, body.
     """
-    if not _DDGS_AVAILABLE:
-        logger.warning("DDGS not available — returning empty search results")
-        return []
     try:
         with DDGS() as ddgs:
             results = list(ddgs.text(query, max_results=max_results))
@@ -76,9 +67,6 @@ def search_news(query: str, max_results: int = 5) -> list[dict]:
     Search recent news via DuckDuckGo News.
     Each result has: title, url, body, date, source.
     """
-    if not _DDGS_AVAILABLE:
-        logger.warning("DDGS not available — returning empty news results")
-        return []
     try:
         with DDGS() as ddgs:
             results = list(ddgs.news(query, max_results=max_results))

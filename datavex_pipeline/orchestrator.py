@@ -17,6 +17,7 @@ import agent2_signals
 import agent3_scoring
 import agent4_decision_maker
 import agent5_outreach
+import agent6_recommender
 
 logger = logging.getLogger("datavex_pipeline")
 
@@ -117,12 +118,23 @@ def run_pipeline(user_input: str, deal_profile: dict | None = None) -> list[Pipe
         dm = d.decision_maker
         print(f"  ✓ {d.company_name:20s} DM={dm.name:20s} role={dm.role:25s} style={dm.priority_profile.communication_style}")
 
-    # ── Agent 5: Outreach Generation ────────────────────────
+    # ── Agent 6: What to Sell Recommender (RAG + LLM) ───────────
     print("\n╔══════════════════════════════════════════════════╗")
-    print("║  Agent 5 — Outreach Generation                  ║")
+    print("║  Agent 6 — What to Sell (RAG Recommender)      ║")
+    print("╚══════════════════════════════════════════════════╝")
+    t6 = time.time()
+    recommendations = agent6_recommender.run(decision_makers, all_signals)
+    _update_tracker("AGENT 6 ✓", f"Recommendations: {', '.join(r['company_name'] + '=' + r['lead_service'] for r in recommendations)} ({time.time()-t6:.1f}s)")
+
+    for r in recommendations:
+        print(f"  ✓ {r['company_name']:20s} lead={r['lead_service']:35s} confidence={r['confidence']}")
+
+    # ── Agent 5: Outreach Generation ───────────────────────────────
+    print("\n╔══════════════════════════════════════════════════╗")
+    print("║  Agent 5 — Outreach Generation (LLM)            ║")
     print("╚══════════════════════════════════════════════════╝")
     t5 = time.time()
-    outreach_kits = agent5_outreach.run(opportunities, all_signals, decision_makers)
+    outreach_kits = agent5_outreach.run(decision_makers, recommendations, all_signals)
     _update_tracker("AGENT 5 ✓", f"Outreach generated for {len(outreach_kits)} targets ({time.time()-t5:.1f}s)")
 
     for ok in outreach_kits:

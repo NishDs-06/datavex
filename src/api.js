@@ -35,3 +35,17 @@ export async function getDiscoveryStatus(scanId) {
     if (!res.ok) throw new Error(`Status check failed: ${res.status}`);
     return res.json();
 }
+
+export async function searchDiscover(companyName, domain = null) {
+    const res = await fetch(`${API_BASE}/companies/search-discover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_name: companyName, domain }),
+    });
+    if (res.status === 429) {
+        const data = await res.json();
+        throw new Error(data.detail || 'A scan is already running.');
+    }
+    if (!res.ok) throw new Error(`Search discover failed: ${res.status}`);
+    return res.json();
+}

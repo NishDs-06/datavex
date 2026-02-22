@@ -10,7 +10,13 @@ const painColor = (p) => {
     return 'var(--text-muted)';
 };
 
+import { useState } from 'react';
+
 export default function LeadBoard({ companies = [], onSelectCompany, onScan, scanState }) {
+    const [searchQuery, setSearchQuery] = useState('');
+    const visible = searchQuery.trim()
+        ? companies.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        : companies;
     return (
         <div style={{ animation: 'contentFade 160ms ease-out' }}>
             {/* Header */}
@@ -41,6 +47,41 @@ export default function LeadBoard({ companies = [], onSelectCompany, onScan, sca
                 >
                     {scanState ? 'Scanning...' : 'Run Scan'}
                 </button>
+            </div>
+
+            {/* ═══════ SEARCH BAR ═══════ */}
+            <div style={{ marginBottom: '32px', position: 'relative' }}>
+                <span style={{
+                    position: 'absolute', left: '18px', top: '50%', transform: 'translateY(-50%)',
+                    fontSize: '16px', pointerEvents: 'none', opacity: 0.5,
+                }}>🔍</span>
+                <input
+                    type="text"
+                    placeholder="Search companies..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    style={{
+                        width: '100%', boxSizing: 'border-box',
+                        padding: '14px 20px 14px 48px',
+                        background: 'var(--surface)', border: '1px solid var(--border)',
+                        borderRadius: '16px', outline: 'none',
+                        fontFamily: 'var(--font-body)', fontSize: '15px',
+                        color: 'var(--text-primary)',
+                        transition: 'border-color 150ms, box-shadow 150ms',
+                    }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-tint)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                />
+                {searchQuery && (
+                    <button
+                        onClick={() => setSearchQuery('')}
+                        style={{
+                            position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            color: 'var(--text-muted)', fontSize: '18px', lineHeight: 1,
+                        }}
+                    >×</button>
+                )}
             </div>
 
             {/* ═══════ SCAN PROGRESS ═══════ */}
@@ -107,9 +148,13 @@ export default function LeadBoard({ companies = [], onSelectCompany, onScan, sca
             )}
 
             {/* ═══════ COMPANY CARDS ═══════ */}
-            {companies.length > 0 ? (
+            {searchQuery && visible.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
+                    No companies match &ldquo;{searchQuery}&rdquo;
+                </div>
+            ) : companies.length > 0 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-                    {companies.map((c) => {
+                    {visible.map((c) => {
                         const data = c.data || {};
                         const a2 = data.agent2 || {};
                         const a4 = data.agent4 || {};

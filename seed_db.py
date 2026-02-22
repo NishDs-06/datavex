@@ -186,32 +186,6 @@ COMPANIES = [
         'competitor': False,
         'outsource_need': 0.88,  # No tech team, clear need for project/cost analytics
     },
-    {
-        'name': 'Samsung',
-        'slug': 'samsung',
-        'industry': 'Consumer Electronics / Technology Conglomerate',
-        'domain': 'Semiconductors, Devices & Enterprise Technology',
-        'size': 'LARGE',
-        'employees': 270000,
-        'region': 'Seoul, South Korea (KRX: 005930)',
-        'internal_tech_strength': 0.65,
-        'conversion_bias': 0.80,
-        'competitor': False,
-        'outsource_need': 0.80,
-    },
-    {
-        'name': 'infosys',
-        'slug': 'infosys',
-        'industry': 'IT Services / Digital Transformation',
-        'domain': 'IT Services & Consulting',
-        'size': 'LARGE',
-        'employees': 340000,
-        'region': 'Bengaluru, India (NSE: INFY)',
-        'internal_tech_strength': 0.55,  # Services company — clients use their tech, not their own
-        'conversion_bias': 0.78,
-        'competitor': False,
-        'outsource_need': 0.75,  # Buys SaaS/AI tools for internal delivery teams regularly
-    },
 ]
 
 db = SessionLocal()

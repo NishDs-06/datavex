@@ -128,18 +128,6 @@ COMPANIES = [
         'competitor': False,
     },
     {
-        'name': 'Databricks',
-        'slug': 'databricks',
-        'industry': 'AI Analytics',
-        'domain': 'Data Intelligence Platform',
-        'size': 'LARGE',
-        'employees': 9000,
-        'region': 'San Francisco, CA, USA',
-        'internal_tech_strength': 0.95,
-        'conversion_bias': 0.72,
-        'competitor': False,
-    },
-    {
         'name': 'MindsDB',
         'slug': 'mindsdb',
         'industry': 'AI/ML Database',

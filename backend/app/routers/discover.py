@@ -47,66 +47,154 @@ def _guess_domain(company_name: str) -> str:
 
 # ── Search-Discover pipeline runner ──────────────────────────
 
-def _quick_scrape_news(company_name: str, domain: str, timeout: int = 10) -> list[dict]:
+def _rich_scrape(company_name: str, domain: str) -> dict:
     """
-    Fast news scraper using Google News RSS. No browser, no JS, just RSS.
-    Returns list of {text, source, recency_days, verified} dicts.
+    Full multi-source scraper with per-step 15s timeouts.
+    Each scraper step runs in a thread — if it hangs, it's cancelled after timeout.
+    Returns a search_cache.json-compatible entry dict.
     """
-    import urllib.request
+    import concurrent.futures
+    import urllib.parse, urllib.request
     import xml.etree.ElementTree as ET
     from datetime import datetime, timezone
-    import re
 
-    signals = []
-    queries = [
-        f"{company_name} funding OR hiring OR product launch OR partnership",
-        f"{company_name} AI OR technology OR data engineering OR cloud migration",
-    ]
+    signals: dict[str, list] = {"funding": [], "product": [], "infra": [], "careers": []}
 
-    for q in queries:
-        url = f"https://news.google.com/rss/search?q={urllib.parse.quote(q)}&hl=en-US&gl=US&ceid=US:en"
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                xml_data = resp.read()
-            root = ET.fromstring(xml_data)
-            for item in root.findall(".//item")[:4]:
-                title = item.findtext("title") or ""
-                pub_date = item.findtext("pubDate") or ""
-                link = item.findtext("link") or ""
+    scraper_dir = os.path.join(PROJECT_ROOT, "info_gather", "datavex-srivatsa", "info_gather")
+    if scraper_dir not in sys.path:
+        sys.path.insert(0, scraper_dir)
+
+    def _run_with_timeout(fn, *args, timeout=15):
+        """Run fn(*args) in a thread; return None on timeout or error."""
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+            future = ex.submit(fn, *args)
+            try:
+                return future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                logger.warning(f"⏰ Timeout ({timeout}s) on {fn.__name__} for {company_name}")
+                return None
+            except Exception as e:
+                logger.warning(f"✗ {fn.__name__} failed for {company_name}: {e}")
+                return None
+
+    # ── 1. Tech stack ──────────────────────────────────────────
+    logger.info(f"  [1/4] tech_stack → {domain}")
+    try:
+        from scrapers.tech_stack import detect_tech_stack
+        tech = _run_with_timeout(detect_tech_stack, domain, company_name, timeout=15)
+        if tech:
+            fw = tech.get("frameworks", [])
+            legacy = tech.get("debt_signals", {}).get("detected_legacy_tech", [])
+            if fw:
+                modern = [f for f in fw if f not in legacy]
+                if modern:
+                    signals["infra"].append({
+                        "text": f"{company_name} runs on: {', '.join(modern[:5])}.",
+                        "source": f"Tech stack — {domain}", "recency_days": 7,
+                        "verified": True, "verification_source": f"https://{domain}",
+                    })
+            if legacy and len(legacy) >= 2:
+                signals["infra"].append({
+                    "text": f"Legacy stack detected: {', '.join(legacy[:3])}.",
+                    "source": f"Tech stack — {domain}", "recency_days": 7,
+                    "verified": True, "verification_source": f"https://{domain}",
+                })
+    except ImportError:
+        logger.warning("  tech_stack scraper not available")
+
+    # ── 2. Press releases / news ───────────────────────────────
+    logger.info(f"  [2/4] press_releases → {company_name}")
+    try:
+        from scrapers.press_releases import scrape_press_releases
+        articles = _run_with_timeout(scrape_press_releases, company_name, domain, None, 10, timeout=15)
+        if articles:
+            for a in articles[:6]:
+                title = a.get("title", "")
+                url   = a.get("source_url", "")
                 if len(title) < 10:
                     continue
-                # Parse date
-                recency = 45
-                for fmt in ["%a, %d %b %Y %H:%M:%S %z", "%a, %d %b %Y %H:%M:%S GMT"]:
-                    try:
-                        dt = datetime.strptime(pub_date.strip(), fmt)
-                        if dt.tzinfo is None:
-                            dt = dt.replace(tzinfo=timezone.utc)
-                        recency = max(1, (datetime.now(timezone.utc) - dt).days)
-                        break
-                    except ValueError:
-                        continue
-                signals.append({
-                    "text": title[:200],
-                    "source": link or "Google News RSS",
-                    "recency_days": recency,
-                    "verified": bool(link),
-                    "verification_source": link,
+                signals["product"].append({
+                    "text": title[:200], "source": url or "Google News",
+                    "recency_days": 30, "verified": bool(url), "verification_source": url,
                 })
-        except Exception as e:
-            logger.warning(f"RSS scrape failed for '{q}': {e}")
-        if len(signals) >= 6:
-            break
+    except ImportError:
+        logger.warning("  press_releases scraper not available")
 
-    return signals
+    # ── 3. Funding news ────────────────────────────────────────
+    logger.info(f"  [3/4] funding_news → {company_name}")
+    try:
+        from scrapers.financials import scrape_funding_news, scrape_layoff_news
+        funding = _run_with_timeout(scrape_funding_news, company_name, timeout=12)
+        if funding:
+            for f in funding[:4]:
+                headline = f.get("headline", "") or f.get("title", "")
+                if len(headline) > 10:
+                    signals["funding"].append({
+                        "text": headline[:200], "source": f.get("source_url", "Google News"),
+                        "recency_days": 45, "verified": True,
+                        "verification_source": f.get("source_url", ""),
+                    })
+        layoffs = _run_with_timeout(scrape_layoff_news, company_name, domain, timeout=10)
+        if layoffs:
+            for l in layoffs[:2]:
+                headline = l.get("headline", "")
+                if len(headline) > 10:
+                    signals["infra"].append({
+                        "text": headline[:200], "source": l.get("source_url", "Google News"),
+                        "recency_days": 30, "verified": True,
+                        "verification_source": l.get("source_url", ""),
+                    })
+    except ImportError:
+        logger.warning("  financials scraper not available")
+
+    # ── 4. RSS fallback if scrapers returned nothing ───────────
+    total_signals = sum(len(v) for v in signals.values())
+    if total_signals < 3:
+        logger.info(f"  [4/4] RSS fallback (only {total_signals} signals so far)")
+        for q in [f"{company_name} funding OR investment OR expansion",
+                  f"{company_name} technology OR product OR AI"]:
+            url = f"https://news.google.com/rss/search?q={urllib.parse.quote(q)}&hl=en-US&gl=US&ceid=US:en"
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    root = ET.fromstring(resp.read())
+                for item in root.findall(".//item")[:5]:
+                    title = item.findtext("title") or ""
+                    link  = item.findtext("link") or ""
+                    if len(title) > 10:
+                        signals["product"].append({
+                            "text": title[:200], "source": link or "Google News RSS",
+                            "recency_days": 30, "verified": bool(link),
+                            "verification_source": link,
+                        })
+            except Exception as e:
+                logger.warning(f"RSS fallback failed: {e}")
+
+    signals = {k: v for k, v in signals.items() if v}
+    total = sum(len(v) for v in signals.values())
+    logger.info(f"  ✓ {total} signals collected for '{company_name}'")
+
+    return {
+        "meta": {
+            "industry": "Unknown",
+            "size": "MID",
+            "region": "Unknown",
+            "employees": 500,
+            "competitor": False,
+            "internal_tech_strength": 0.5,
+            "conversion_bias": 0.65,
+            "domain_display": company_name,
+        },
+        "signals": signals,
+        "decision_makers": [{"name": "", "role": "CTO / VP Engineering"}],
+    }
 
 
 def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
     """
-    Analyse a user-specified company, run agents 2-6, and save to DB.
-    Uses cached data if available, otherwise fast RSS news scraping (10s timeout).
-    Runs in a background thread.
+    Analyse a user-specified company with rich multi-source data, run agents 2-6,
+    and save the result to DB. Runs in a background thread.
+    Uses cached data if available, otherwise runs the full scraper with per-step timeouts.
     """
     global _active_scan_id
     import urllib.parse
@@ -117,9 +205,9 @@ def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
             return
 
         scan.status       = "running"
-        scan.progress     = 0.10
+        scan.progress     = 0.08
         scan.company_name = company_name
-        scan.agents_pending   = ["SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
+        scan.agents_pending   = ["DATA_COLLECTION", "SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
         scan.agents_completed = []
         db.commit()
 
@@ -135,7 +223,7 @@ def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
             if mod.startswith(("agent", "config", "knowledge_base", "ollama_client")):
                 del sys.modules[mod]
 
-        # ── Step 1: Build/get signals for this company ─────────
+        # ── Step 1: Build/get rich signals ────────────────────
         cache_path = os.path.join(pipeline_dir, "search_cache.json")
         try:
             with open(cache_path) as f:
@@ -144,30 +232,18 @@ def _run_search_discover_pipeline(company_name: str, domain: str, scan_id: str):
             cache_data = {}
 
         if company_name not in cache_data:
-            logger.info(f"'{company_name}' not in search_cache, running fast RSS scrape...")
-            news_signals = _quick_scrape_news(company_name, domain, timeout=10)
-            # Build a minimal cache entry
-            cache_data[company_name] = {
-                "meta": {
-                    "industry": "Unknown",
-                    "size": "MID",
-                    "region": "Unknown",
-                    "employees": 500,
-                    "competitor": False,
-                    "internal_tech_strength": 0.5,
-                    "conversion_bias": 0.6,
-                    "domain_display": company_name,
-                },
-                "signals": {"product": news_signals} if news_signals else {},
-                "decision_makers": [{"name": "", "role": "CTO / VP Engineering"}],
-            }
+            logger.info(f"'{company_name}' not in search_cache — running full scrape with timeouts...")
+            scraped = _rich_scrape(company_name, domain)
+            cache_data[company_name] = scraped
             with open(cache_path, "w") as f:
                 __import__("json").dump(cache_data, f, indent=2)
-            logger.info(f"Built {len(news_signals)} RSS signals for '{company_name}'")
+            total_sigs = sum(len(v) for v in scraped.get("signals", {}).values())
+            logger.info(f"Scraped and cached {total_sigs} signals for '{company_name}'")
         else:
-            logger.info(f"'{company_name}' found in search_cache — using cached data")
+            logger.info(f"'{company_name}' found in search_cache — using cached rich data")
 
         scan.progress     = 0.35
+
         scan.agents_completed = ["DATA_COLLECTION"]
         scan.agents_pending   = ["SIGNALS", "SCORING", "DECISION", "RECOMMENDER", "OUTREACH"]
         db.commit()

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import LoginScreen from './Login';
 import LeadBoard from './LeadBoard';
 import { Sparkline, ScoreArc } from './Charts';
-import { getCompanies, getCompany, triggerDiscovery, getDiscoveryStatus } from './api';
+import { getCompanies, getCompany, triggerDiscovery, getDiscoveryStatus, searchDiscover } from './api';
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -80,6 +80,55 @@ export default function App() {
       setTimeout(() => setScanState(null), 5000);
     }
   }, [fetchCompanies]);
+
+  // ── Search-Discover: run pipeline on a specific company ─────
+  const handleSearchDiscover = useCallback(async (companyName) => {
+    if (!companyName.trim() || scanState) return;
+    try {
+      setScanState({ status: 'queued', progress: 0, company_name: companyName, agents_completed: [], agents_pending: [] });
+      const res = await searchDiscover(companyName.trim());
+      const scanId = res.scan_id;
+
+      pollRef.current = setInterval(async () => {
+        try {
+          const status = await getDiscoveryStatus(scanId);
+          const compName = (status.company_name || '').startsWith('DONE:')
+            ? companyName
+            : (status.company_name || companyName);
+          setScanState({
+            scanId,
+            status: status.status,
+            progress: status.progress,
+            company_name: compName,
+            agents_completed: status.agents_completed || [],
+            agents_pending: status.agents_pending || [],
+            error_message: status.error_message,
+          });
+
+          if (status.status === 'completed' || status.status === 'failed') {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+            if (status.status === 'completed') {
+              await fetchCompanies();
+              // If backend returns slug in DONE:{slug}, auto-open the company report
+              const raw = status.company_name || '';
+              if (raw.startsWith('DONE:')) {
+                const slug = raw.replace('DONE:', '');
+                await handleCompanySelect(slug);
+              }
+            }
+            setTimeout(() => setScanState(null), 4000);
+          }
+        } catch (e) {
+          console.error('Poll error:', e);
+        }
+      }, 2000);
+    } catch (e) {
+      console.error('Search-discover failed:', e);
+      setScanState({ status: 'failed', error_message: e.message, progress: 0, agents_completed: [], agents_pending: [] });
+      setTimeout(() => setScanState(null), 5000);
+    }
+  }, [scanState, fetchCompanies, handleCompanySelect]);
 
   useEffect(() => {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
@@ -198,6 +247,7 @@ export default function App() {
             companies={companies}
             onSelectCompany={handleCompanySelect}
             onScan={handleScan}
+            onSearchDiscover={handleSearchDiscover}
             scanState={scanState}
           />
         )}

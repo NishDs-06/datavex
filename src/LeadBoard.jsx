@@ -12,11 +12,25 @@ const painColor = (p) => {
 
 import { useState } from 'react';
 
-export default function LeadBoard({ companies = [], onSelectCompany, onScan, scanState }) {
+export default function LeadBoard({ companies = [], onSelectCompany, onScan, onSearchDiscover, scanState }) {
     const [searchQuery, setSearchQuery] = useState('');
     const visible = searchQuery.trim()
         ? companies.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
         : companies;
+
+    // Whether the typed query matches any existing company
+    const hasMatch = visible.length > 0;
+    const canScanNew = searchQuery.trim().length >= 2 && !hasMatch && !scanState;
+
+    const handleSearchKeyDown = (e) => {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+            if (canScanNew && onSearchDiscover) {
+                onSearchDiscover(searchQuery.trim());
+                setSearchQuery('');
+            }
+        }
+    };
+
     return (
         <div style={{ animation: 'contentFade 160ms ease-out' }}>
             {/* Header */}
@@ -57,22 +71,36 @@ export default function LeadBoard({ companies = [], onSelectCompany, onScan, sca
                 }}>🔍</span>
                 <input
                     type="text"
-                    placeholder="Search companies..."
+                    placeholder="Search or type a company name and press Enter to scan..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
                     style={{
                         width: '100%', boxSizing: 'border-box',
                         padding: '14px 20px 14px 48px',
-                        background: 'var(--surface)', border: '1px solid var(--border)',
+                        background: 'var(--surface)', border: `1px solid ${canScanNew ? 'var(--accent)' : 'var(--border)'}`,
                         borderRadius: '16px', outline: 'none',
                         fontFamily: 'var(--font-body)', fontSize: '15px',
                         color: 'var(--text-primary)',
                         transition: 'border-color 150ms, box-shadow 150ms',
+                        boxShadow: canScanNew ? '0 0 0 3px var(--accent-tint)' : 'none',
                     }}
                     onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-tint)'; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    onBlur={e => { if (!canScanNew) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; } }}
                 />
-                {searchQuery && (
+                {canScanNew && (
+                    <button
+                        onClick={() => { if (onSearchDiscover) { onSearchDiscover(searchQuery.trim()); setSearchQuery(''); } }}
+                        style={{
+                            position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                            background: 'var(--accent)', border: 'none', cursor: 'pointer',
+                            color: '#fff', fontSize: '12px', fontFamily: 'var(--font-mono)',
+                            fontWeight: 600, padding: '6px 14px', borderRadius: '10px',
+                            letterSpacing: '0.04em',
+                        }}
+                    >↵ SCAN</button>
+                )}
+                {searchQuery && !canScanNew && (
                     <button
                         onClick={() => setSearchQuery('')}
                         style={{
@@ -83,6 +111,22 @@ export default function LeadBoard({ companies = [], onSelectCompany, onScan, sca
                     >×</button>
                 )}
             </div>
+
+            {/* ─── hint when typed company not found ─── */}
+            {searchQuery.trim().length >= 2 && !hasMatch && !scanState && (
+                <div style={{
+                    marginBottom: '20px', padding: '12px 18px',
+                    background: 'var(--accent-tint)', border: '1px solid var(--accent)',
+                    borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px',
+                    fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--accent)',
+                }}>
+                    <span style={{ fontSize: '16px' }}>🤖</span>
+                    <span>
+                        <strong>"{searchQuery}"</strong> not in database —{' '}
+                        press <strong>Enter</strong> or click <strong>↵ SCAN</strong> to run the 5-agent pipeline on it.
+                    </span>
+                </div>
+            )}
 
             {/* ═══════ SCAN PROGRESS ═══════ */}
             {scanState && (

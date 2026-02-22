@@ -186,6 +186,19 @@ COMPANIES = [
         'competitor': False,
         'outsource_need': 0.88,  # No tech team, clear need for project/cost analytics
     },
+    {
+        'name': 'Samsung',
+        'slug': 'samsung',
+        'industry': 'Consumer Electronics / Technology Conglomerate',
+        'domain': 'Semiconductors, Devices & Enterprise Technology',
+        'size': 'LARGE',
+        'employees': 270000,
+        'region': 'Seoul, South Korea (KRX: 005930)',
+        'internal_tech_strength': 0.65,  # Some BUs are strong, many divisions are not
+        'conversion_bias': 0.80,
+        'competitor': False,
+        'outsource_need': 0.80,  # Samsung BUs (SmartThings, Knox, Semiconductor) actively buy analytics/AI tools
+    },
 ]
 
 db = SessionLocal()
@@ -219,7 +232,7 @@ for cfg in COMPANIES:
             })
 
     # ── Scores ─────────────────────────────────────────────
-    # Expansion: 3 strong signals = full marks (was /5, now /3 — more realistic)
+    # Expansion: 3 strong signals = full marks
     expansion  = min(1.0, len([s for s in enriched if s['type'] in {'HIRING','FUNDING','PRODUCT','GTM'}]) / 3.0)
     strain     = round(expansion * 0.75 + len([s for s in enriched if s['type'] == 'INFRA']) * 0.1, 3)
     risk       = 0.90 if is_comp else 0.05
@@ -235,7 +248,9 @@ for cfg in COMPANIES:
 
     # LOW internal_tech_strength = they can't build it → they BUY it from us
     capability_gap = round(1.0 - cfg['internal_tech_strength'], 3)
-    intent   = round(0.40 * expansion + 0.30 * strain + 0.30 * capability_gap, 3)
+    # Intent floor of 0.35 — even with 0 scraped signals, company params still drive intent
+    raw_intent = round(0.40 * expansion + 0.30 * strain + 0.30 * capability_gap, 3)
+    intent     = round(max(raw_intent, 0.35 * capability_gap + 0.15), 3)
     conv     = round(cfg['conversion_bias'] * 0.75 + 0.25 * capability_gap, 3) if not is_comp else 0.08
     # MID/SMALL companies = recurring, sticky, long-term revenue
     deal_sz  = 0.55 if cfg['size'] == 'LARGE' else 0.80

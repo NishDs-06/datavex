@@ -114,19 +114,6 @@ COMPANIES = [
         'conversion_bias': 0.10,
         'competitor': True,
     },
-    # ── PRIMARY TARGETS (from search_cache.json) ──────────────
-    {
-        'name': 'Fractal Analytics',
-        'slug': 'fractal-analytics',
-        'industry': 'AI Analytics',
-        'domain': 'AI Analytics & Data Science Services',
-        'size': 'LARGE',
-        'employees': 4000,
-        'region': 'India / USA',
-        'internal_tech_strength': 0.78,
-        'conversion_bias': 0.82,
-        'competitor': False,
-    },
     {
         'name': 'MindsDB',
         'slug': 'mindsdb',
@@ -186,9 +173,13 @@ for cfg in COMPANIES:
     key_signals = list(best.keys())[:3]
 
     intent   = round(0.45 * expansion + 0.35 * strain + 0.2 * cfg['internal_tech_strength'], 3)
-    conv     = round(cfg['conversion_bias'] * 0.8 + 0.2 * expansion, 3) if not is_comp else 0.08
-    deal_sz  = 1.0 if cfg['size'] == 'LARGE' else 0.65
-    opp_sc   = round(0.4 * intent + 0.35 * conv + 0.25 * deal_sz, 3) if not is_comp else 0.12
+    conv     = round(cfg['conversion_bias'] * 0.90 + 0.10 * expansion, 3) if not is_comp else 0.08
+    # MID/SMALL companies = recurring, sticky, long-term revenue
+    # LARGE companies = one-shot deals, slow to close, low repeat rate
+    deal_sz  = 0.55 if cfg['size'] == 'LARGE' else 0.80
+    # Extra bonus for mid companies that come back repeatedly
+    recurring_bonus = 0.05 if cfg['size'] in ('MID', 'SMALL') and not is_comp else 0.0
+    opp_sc   = round(0.35 * intent + 0.40 * conv + 0.25 * deal_sz + recurring_bonus, 3) if not is_comp else 0.12
     priority = priority_from(int(opp_sc * 100))
     score_int = int(opp_sc * 100) if not is_comp else 12
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import LoginScreen from './Login';
 import LeadBoard from './LeadBoard';
-import CapabilityMatch from './CapabilityMatch';
 import { Sparkline, ScoreArc } from './Charts';
 import { getCompanies, getCompany, triggerDiscovery, getDiscoveryStatus } from './api';
 
@@ -12,16 +11,13 @@ export default function App() {
   const [activeCompanyId, setActiveCompanyId] = useState(null);
   const [companyDetail, setCompanyDetail] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [outreachTab, setOutreachTab] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const [scanState, setScanState] = useState(null); // { scanId, status, progress, company_name, agents_completed }
+  const [scanState, setScanState] = useState(null);
   const pollRef = useRef(null);
 
   useEffect(() => {
     if (localStorage.getItem('datavex_auth')) setLoggedIn(true);
   }, []);
 
-  // Fetch companies on login
   useEffect(() => {
     if (loggedIn) fetchCompanies();
   }, [loggedIn]);
@@ -37,8 +33,6 @@ export default function App() {
 
   const handleCompanySelect = useCallback(async (companyId) => {
     setActiveCompanyId(companyId);
-    setOutreachTab(0);
-    setCopied(false);
     setView('report');
     setLoading(true);
     try {
@@ -53,11 +47,10 @@ export default function App() {
 
   const handleScan = useCallback(async () => {
     try {
-      setScanState({ status: 'queued', progress: 0, company_name: 'Auto-Discovery', agents_completed: [] });
+      setScanState({ status: 'queued', progress: 0, company_name: 'Auto-Discovery', agents_completed: [], agents_pending: [] });
       const res = await triggerDiscovery();
       const scanId = res.scan_id;
 
-      // Poll for status
       pollRef.current = setInterval(async () => {
         try {
           const status = await getDiscoveryStatus(scanId);
@@ -65,7 +58,7 @@ export default function App() {
             scanId,
             status: status.status,
             progress: status.progress,
-            company_name: status.company_name || 'Discovering targets...',
+            company_name: status.company_name || 'Running pipeline...',
             agents_completed: status.agents_completed || [],
             agents_pending: status.agents_pending || [],
             error_message: status.error_message,
@@ -74,10 +67,7 @@ export default function App() {
           if (status.status === 'completed' || status.status === 'failed') {
             clearInterval(pollRef.current);
             pollRef.current = null;
-            if (status.status === 'completed') {
-              await fetchCompanies();
-            }
-            // Clear scan state after 3 seconds
+            if (status.status === 'completed') await fetchCompanies();
             setTimeout(() => setScanState(null), 4000);
           }
         } catch (e) {
@@ -86,12 +76,11 @@ export default function App() {
       }, 2000);
     } catch (e) {
       console.error('Discovery failed:', e);
-      setScanState({ status: 'failed', error_message: e.message, progress: 0, agents_completed: [] });
+      setScanState({ status: 'failed', error_message: e.message, progress: 0, agents_completed: [], agents_pending: [] });
       setTimeout(() => setScanState(null), 5000);
     }
   }, [fetchCompanies]);
 
-  // Cleanup poll on unmount
   useEffect(() => {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
@@ -101,18 +90,6 @@ export default function App() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  const outreachKeys = ['email', 'linkedin', 'opener'];
-  const outreachLabels = ['EMAIL', 'LINKEDIN', 'OPENER'];
-
-  const handleCopy = useCallback(() => {
-    if (!companyDetail?.outreach) return;
-    const text = companyDetail.outreach[outreachKeys[outreachTab]] || '';
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }, [companyDetail, outreachTab]);
-
   if (!loggedIn) return <LoginScreen onComplete={() => setLoggedIn(true)} />;
 
   return (
@@ -121,58 +98,49 @@ export default function App() {
       <aside style={{
         width: '220px', flexShrink: 0, height: '100vh',
         background: 'var(--sidebar-bg)', borderRight: '1px solid var(--border)',
-        padding: '24px 12px', display: 'flex', flexDirection: 'column',
-        overflowY: 'auto',
+        padding: '24px 12px', display: 'flex', flexDirection: 'column', overflowY: 'auto',
       }}>
-        {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', marginBottom: '6px' }}>
           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)' }} />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: 'var(--text-primary)' }}>DataVex AI</span>
         </div>
-        <div style={{
-          fontFamily: 'var(--font-mono)', fontSize: '9px', letterSpacing: '0.08em',
-          color: 'var(--text-muted)', padding: '0 12px', marginBottom: '24px',
-        }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', letterSpacing: '0.08em', color: 'var(--text-muted)', padding: '0 12px', marginBottom: '24px' }}>
           v2.4.1 — Synth Layer Active
         </div>
 
-        {/* Lead Board nav */}
         <button onClick={() => setView('leadboard')} style={{
           textAlign: 'left', padding: '10px 12px', borderRadius: '12px',
           border: 'none', cursor: 'pointer',
           background: view === 'leadboard' ? 'var(--surface)' : 'transparent',
           borderLeft: view === 'leadboard' ? '3px solid var(--accent)' : '3px solid transparent',
-          transition: 'all 150ms', display: 'flex', alignItems: 'center', gap: '8px',
-        }}
-          onMouseEnter={(e) => { if (view !== 'leadboard') e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
-          onMouseLeave={(e) => { if (view !== 'leadboard') e.currentTarget.style.background = view === 'leadboard' ? 'var(--surface)' : 'transparent'; }}>
-          <span style={{
-            fontFamily: 'var(--font-body)', fontSize: '13px',
-            color: view === 'leadboard' ? 'var(--accent)' : 'var(--text-primary)',
-            fontWeight: view === 'leadboard' ? 600 : 400,
-          }}>Lead Board</span>
+          transition: 'all 150ms',
+        }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: view === 'leadboard' ? 'var(--accent)' : 'var(--text-primary)', fontWeight: view === 'leadboard' ? 600 : 400 }}>
+            Lead Board
+          </span>
         </button>
 
-        {/* Company scroll anchors */}
+        {/* Section anchors when in report view */}
         {view === 'report' && companyDetail && (
           <div style={{ marginTop: '24px' }}>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontSize: '16px',
-              color: 'var(--text-primary)', padding: '0 12px', marginBottom: '16px',
-            }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', color: 'var(--text-primary)', padding: '0 12px', marginBottom: '16px' }}>
               {companyDetail.name}
             </div>
             {[
-              { id: 'section-signal', label: 'Signal Engine' },
-              { id: 'section-capability', label: 'Capability Match' },
+              { id: 'section-discovery', label: 'Discovery' },
+              { id: 'section-signals', label: 'Signal Engine' },
+              { id: 'section-scoring', label: 'Opportunity Score' },
+              { id: 'section-strategy', label: 'Strategy' },
+              { id: 'section-decision', label: 'GTM Decision' },
+              { id: 'section-outreach', label: 'Outreach' },
               { id: 'section-reasoning', label: 'Reasoning Log' },
             ].map((item) => (
               <button key={item.id} onClick={() => scrollTo(item.id)} style={{
                 display: 'block', width: '100%', textAlign: 'left',
                 padding: '8px 12px', border: 'none', cursor: 'pointer',
                 background: 'transparent', borderRadius: '8px',
-                fontFamily: 'var(--font-body)', fontSize: '12px',
-                color: 'var(--text-muted)', transition: 'color 120ms, background 120ms',
+                fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)',
+                transition: 'color 120ms, background 120ms',
               }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}>
@@ -184,11 +152,8 @@ export default function App() {
 
         <div style={{ margin: '20px 0', height: '1px', background: 'var(--border)' }} />
 
-        {/* Active Targets */}
-        <div style={{
-          fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: 'var(--text-muted)', paddingLeft: '12px', marginBottom: '8px',
-        }}>
+        {/* Active targets list */}
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', paddingLeft: '12px', marginBottom: '8px' }}>
           Active Targets ({companies.length})
         </div>
         {companies.map((c) => {
@@ -199,21 +164,18 @@ export default function App() {
               border: 'none', cursor: 'pointer',
               background: isActive ? 'var(--surface)' : 'transparent',
               transition: 'all 150ms', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}
-              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
-              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = isActive ? 'var(--surface)' : 'transparent'; }}>
+            }}>
               <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-primary)' }}>{c.name}</span>
-              <span style={{
-                fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600,
-                color: c.score >= 80 ? 'var(--accent)' : c.score >= 60 ? 'var(--warning)' : 'var(--text-muted)',
-              }}>{c.score}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, color: c.score >= 80 ? 'var(--accent)' : c.score >= 60 ? 'var(--warning)' : 'var(--text-muted)' }}>
+                {c.score}
+              </span>
             </button>
           );
         })}
 
         {companies.length === 0 && (
           <div style={{ padding: '12px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
-            No targets scanned yet.<br />Use the scan bar to analyze a company.
+            No targets yet.<br />Click <strong>Run Scan</strong> to discover targets.
           </div>
         )}
 
@@ -248,277 +210,370 @@ export default function App() {
           </div>
         )}
         {view === 'report' && !loading && companyDetail && (
-          <CompanyReport
-            company={companyDetail}
-            outreachTab={outreachTab} setOutreachTab={setOutreachTab}
-            outreachLabels={outreachLabels} outreachKeys={outreachKeys}
-            copied={copied} setCopied={setCopied} handleCopy={handleCopy}
-          />
+          <CompanyReport company={companyDetail} />
         )}
       </main>
     </div>
   );
 }
 
+
 /* ═══════════════════════════════════════════════════
-   SINGLE-PAGE COMPANY REPORT — FULL WIDTH
+   COMPANY REPORT — 6-SECTION LAYOUT FROM AGENT OUTPUTS
    ═══════════════════════════════════════════════════ */
 
-function CompanyReport({ company, outreachTab, setOutreachTab, outreachLabels, outreachKeys, copied, setCopied, handleCopy }) {
-  const financials = company.financials || { quarters: [], margin: [], revenue: [] };
-  const hasFinancials = financials.margin && financials.margin.length > 0;
-  const trending = hasFinancials ? (financials.margin[financials.margin.length - 1] < financials.margin[0] ? 'down' : 'up') : 'up';
-  const sparkColor = trending === 'down' ? 'var(--warning)' : 'var(--accent)';
-  const scoreBreakdown = company.score_breakdown || company.scoreBreakdown || [];
-  const hiring = company.hiring || [];
-  const timeline = company.timeline || [];
-  const painClusters = company.pain_clusters || company.painClusters || [];
-  const decisionMaker = company.decision_maker || company.decisionMaker || {};
-  const outreach = company.outreach || {};
+function CompanyReport({ company }) {
+  const a1 = company.agent1 || {};
+  const a2 = company.agent2 || {};
+  const a3 = company.agent3 || {};
+  const a35 = company.agent35 || {};
+  const a4 = company.agent4 || {};
+  const a5 = company.agent5 || {};
   const trace = company.trace || [];
-  const capabilityMatch = company.capability_match || company.capabilityMatch || [];
-  const receptivity = company.receptivity || 'UNKNOWN';
-  const painTags = company.pain_tags || company.painTags || [];
+  const scoreBreakdown = company.score_breakdown || company.scoreBreakdown || [];
+  const isCompetitor = company.competitor === true;
+  const signalCounts = company.signal_counts || {};
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(a5.message || '').then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const priorityColor = (p) => p === 'HIGH' ? 'var(--accent)' : p === 'MEDIUM' ? 'var(--warning)' : 'var(--text-muted)';
+  const pct = (v) => `${Math.round((v || 0) * 100)}%`;
+  const score100 = (v) => Math.round((v || 0) * 100);
 
   return (
     <>
-      {/* ════════ SIGNAL ENGINE ════════ */}
-      <div id="section-signal">
+      {/* ════════ COMPETITOR WARNING BANNER ════════ */}
+      {isCompetitor && (
         <Section index={0}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.1 }}>{company.name}</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-muted)', marginTop: '8px' }}>{company.descriptor}</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginTop: '40px' }}>
-            <ScoreArc score={company.score} />
-            <div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                CONFIDENCE · <span style={{ color: company.confidence === 'HIGH' ? 'var(--accent)' : company.confidence === 'MEDIUM' ? 'var(--warning)' : 'var(--text-muted)' }}>{company.confidence}</span>
-              </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>DATA COVERAGE: {company.coverage}%</div>
-            </div>
-          </div>
-        </Section>
-
-        {/* At a Glance */}
-        <Section index={1} label="AT A GLANCE">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
-            {/* Operating Margin */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
-              <MiniLabel>OPERATING MARGIN</MiniLabel>
-              {hasFinancials ? (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: 500, color: trending === 'down' ? 'var(--warning)' : 'var(--accent)' }}>
-                      {financials.margin[financials.margin.length - 1]}%
-                    </span>
-                    <Sparkline data={financials.margin} color={sparkColor} />
-                  </div>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-muted)', marginTop: '8px', display: 'block' }}>
-                    {financials.quarters[0]} — {financials.quarters[financials.quarters.length - 1]}
-                  </span>
-                </>
-              ) : (
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)', marginTop: '12px' }}>Financial data from agent analysis</p>
-              )}
-            </div>
-
-            {/* Score Breakdown */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
-              <MiniLabel>SCORE BREAKDOWN</MiniLabel>
-              <div style={{ display: 'flex', flexDirection: 'column', marginTop: '12px' }}>
-                {scoreBreakdown.length > 0 ? scoreBreakdown.map((row, i) => (
-                  <div key={row.label} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '10px 0',
-                    borderBottom: i < scoreBreakdown.length - 1 ? '1px solid var(--border)' : 'none',
-                  }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)' }}>{row.label}</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: 'var(--text-primary)' }}>{row.value}/{row.max}</span>
-                  </div>
-                )) : (
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)' }}>Score: {company.score}/100</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Hiring Signals */}
-          {hiring.length > 0 && (
-            <div style={{ marginTop: '24px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
-              <MiniLabel>HIRING SIGNALS</MiniLabel>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 40px', marginTop: '12px' }}>
-                {hiring.map((h) => (
-                  <div key={h.category} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '10px 0', borderBottom: '1px solid var(--border)',
-                  }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)' }}>{h.category}</span>
-                    <span style={{
-                      fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 500,
-                      color: h.type === 'positive' ? 'var(--accent)' : h.type === 'warning' ? 'var(--warning)' : 'var(--text-muted)',
-                    }}>{h.count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </Section>
-
-        {/* Why Now */}
-        <Section index={2} label="WHY NOW">
           <div style={{
-            display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: '11px',
-            letterSpacing: '0.08em', padding: '8px 20px',
-            background: 'var(--accent-tint)', border: '1px solid var(--accent)',
-            borderRadius: '20px', color: 'var(--accent)', marginBottom: '40px',
-          }}>RECEPTIVITY WINDOW · {receptivity}</div>
-          {timeline.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 64px' }}>
-              <div style={{ position: 'relative', paddingLeft: '24px' }}>
-                <div style={{ position: 'absolute', left: '3px', top: '4px', bottom: '4px', width: '1px', background: 'var(--border)' }} />
-                {timeline.slice(0, 3).map((evt, i) => (
-                  <TimelineEvent key={i} evt={evt} isLast={i === 2} />
-                ))}
-              </div>
-              <div style={{ position: 'relative', paddingLeft: '24px' }}>
-                <div style={{ position: 'absolute', left: '3px', top: '4px', bottom: '4px', width: '1px', background: 'var(--border)' }} />
-                {timeline.slice(3).map((evt, i) => (
-                  <TimelineEvent key={i} evt={evt} isLast={i === timeline.slice(3).length - 1} />
-                ))}
-              </div>
+            background: 'rgba(255, 160, 0, 0.08)',
+            border: '2px solid var(--warning)',
+            borderRadius: '20px',
+            padding: '28px 36px',
+            marginBottom: '16px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '28px' }}>⚠️</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '22px', color: 'var(--warning)' }}>
+                Potential Competitor — Not a Target Client
+              </span>
             </div>
-          )}
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.7 }}>
+              {company.competitor_note || 'This company has been flagged as a potential competitor. Do not initiate outreach. Use as competitive intelligence only.'}
+            </p>
+            {signalCounts.total > 0 && (
+              <div style={{ display: 'flex', gap: '16px', marginTop: '16px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                <span style={{ color: 'var(--accent)' }}>✓ {signalCounts.verified || 0} VERIFIED signals</span>
+                <span style={{ color: 'var(--warning)' }}>⚠ {signalCounts.unverified || 0} UNVERIFIED signals</span>
+                <span style={{ color: 'var(--text-muted)' }}>Total: {signalCounts.total || 0}</span>
+              </div>
+            )}
+          </div>
         </Section>
-
-        {/* Pain Map */}
-        {painClusters.length > 0 && (
-          <Section index={3} label="WHERE IT HURTS">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-              {painClusters.map((cluster, i) => (
-                <div key={i} style={{
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: '24px', padding: '32px', boxShadow: 'var(--shadow)',
-                }}>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 400, color: 'var(--text-primary)', marginBottom: '20px' }}>{cluster.title}</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {(cluster.evidence || []).map((ev, j) => (
-                      <div key={j} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                        <span style={{
-                          fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--accent)', fontWeight: 500,
-                          background: 'var(--accent-tint)', padding: '4px 10px',
-                          borderRadius: '20px', flexShrink: 0, marginTop: '3px',
-                        }}>{ev.source}</span>
-                        <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.65 }}>{ev.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {/* Decision Maker */}
-        {decisionMaker.name && (
-          <Section index={4} label="WHO TO TALK TO">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', fontWeight: 400, color: 'var(--text-primary)' }}>{decisionMaker.name}</h3>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-muted)', marginTop: '8px' }}>{decisionMaker.role}</p>
-                {decisionMaker.topics && (
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
-                    {decisionMaker.topics.map((t) => (
-                      <span key={t} style={{ border: '1px solid var(--border)', borderRadius: '20px', padding: '6px 14px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-primary)' }}>{t}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {decisionMaker.messaging && (
-                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px', padding: '28px', boxShadow: 'var(--shadow)' }}>
-                  <MiniLabel>PRIMARY ANGLE</MiniLabel>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.65, marginBottom: '24px' }}>{decisionMaker.messaging.angle}</p>
-                  {decisionMaker.messaging.vocab && (
-                    <>
-                      <MiniLabel>VOCABULARY</MiniLabel>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
-                        {decisionMaker.messaging.vocab.map((v) => (
-                          <span key={v} style={{ border: '1px solid var(--accent)', borderRadius: '20px', padding: '4px 12px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--accent)' }}>{v}</span>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                  <MiniLabel>TONE</MiniLabel>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '20px', color: 'var(--accent)' }}>{decisionMaker.messaging.tone}</span>
-                </div>
-              )}
-            </div>
-          </Section>
-        )}
-
-        {/* Outreach */}
-        {outreach.email && (
-          <Section index={5} label="REACH OUT">
-            <div style={{ display: 'flex', gap: '24px', marginBottom: '20px' }}>
-              {outreachLabels.map((label, i) => (
-                <button key={label} onClick={() => { setOutreachTab(i); setCopied(false); }} style={{
-                  fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 500,
-                  color: outreachTab === i ? 'var(--accent)' : 'var(--text-muted)',
-                  borderBottom: outreachTab === i ? '2px solid var(--accent)' : '2px solid transparent',
-                  paddingBottom: '8px', transition: 'color 150ms, border-color 150ms', cursor: 'pointer',
-                  background: 'transparent', border: 'none', borderBottomWidth: '2px', borderBottomStyle: 'solid',
-                  borderBottomColor: outreachTab === i ? 'var(--accent)' : 'transparent',
-                }}
-                  onMouseEnter={(e) => { if (outreachTab !== i) e.currentTarget.style.color = 'var(--text-primary)'; }}
-                  onMouseLeave={(e) => { if (outreachTab !== i) e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px', padding: '32px', boxShadow: 'var(--shadow)' }}>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>
-                {outreach[outreachKeys[outreachTab]] || 'Not available'}
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '20px' }}>
-              <button onClick={handleCopy} style={{
-                borderRadius: '20px', padding: '10px 24px',
-                fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 500,
-                color: copied ? '#fff' : 'var(--text-primary)',
-                background: copied ? 'var(--accent)' : 'transparent',
-                border: copied ? 'none' : '1px solid var(--border)',
-                transition: 'all 150ms', cursor: 'pointer',
-              }}
-                onMouseEnter={(e) => { if (!copied) e.currentTarget.style.background = 'var(--hover-bg)'; }}
-                onMouseLeave={(e) => { if (!copied) e.currentTarget.style.background = 'transparent'; }}>
-                {copied ? '✓ Copied' : 'Copy to clipboard'}
-              </button>
-              {outreach.footnote && <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-muted)' }}>{outreach.footnote}</span>}
-            </div>
-          </Section>
-        )}
-      </div>
-
-      {/* ════════ CAPABILITY MATCH ════════ */}
-      {capabilityMatch.length > 0 && (
-        <div id="section-capability">
-          <Section index={6} label="CAPABILITY MATCH">
-            <CapabilityMatch company={company} />
-          </Section>
-        </div>
       )}
 
-      {/* ════════ REASONING LOG ════════ */}
+      {/* ════════ HEADER ════════ */}
+      <Section index={0}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+          {company.name}
+        </h1>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-muted)', marginTop: '8px' }}>
+          {company.descriptor}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginTop: '32px' }}>
+          <ScoreArc score={isCompetitor ? 0 : company.score} />
+          <div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              PRIORITY · <span style={{ color: isCompetitor ? 'var(--warning)' : priorityColor(a3.priority) }}>{isCompetitor ? 'COMPETITOR' : (a3.priority || company.confidence)}</span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              COVERAGE: {company.coverage}%
+            </div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              RECEPTIVITY: {company.receptivity}
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ════════ 1. DISCOVERY (Agent 1) ════════ */}
+      <div id="section-discovery">
+        <Section index={1} label="DISCOVERY — AGENT 1">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {[
+              { label: 'INDUSTRY', value: a1.industry || '—' },
+              { label: 'DOMAIN', value: a1.domain || '—' },
+              { label: 'SIZE', value: a1.size || '—' },
+              { label: 'EMPLOYEES', value: a1.estimated_employees ? `~${a1.estimated_employees.toLocaleString()}` : '—' },
+              { label: 'REGION', value: a1.region || '—' },
+              { label: 'COMPANY', value: a1.company_name || company.name },
+            ].map((row) => (
+              <div key={row.label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px 24px', boxShadow: 'var(--shadow)' }}>
+                <MiniLabel>{row.label}</MiniLabel>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', color: 'var(--text-primary)', marginTop: '6px' }}>
+                  {row.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
+
+      {/* ════════ 2. SIGNAL ENGINE (Agent 2) ════════ */}
+      <div id="section-signals">
+        <Section index={2} label="SIGNAL ENGINE — AGENT 2">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            {/* Score bars */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
+              <MiniLabel>SIGNAL SCORES</MiniLabel>
+              {[
+                { label: 'Expansion', value: a2.expansion_score || 0, color: 'var(--accent)' },
+                { label: 'Strain', value: a2.strain_score || 0, color: 'var(--warning)' },
+                { label: 'Risk', value: a2.risk_score || 0, color: '#e05050' },
+                { label: 'Pain', value: a2.pain_score || 0, color: 'var(--accent)' },
+              ].map((bar) => (
+                <div key={bar.label} style={{ marginTop: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-primary)' }}>{bar.label}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: bar.color, fontWeight: 600 }}>{pct(bar.value)}</span>
+                  </div>
+                  <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: pct(bar.value), background: bar.color, borderRadius: '3px', transition: 'width 600ms ease-out' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pain level + signals */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
+              <MiniLabel>PAIN LEVEL</MiniLabel>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: '36px', color: priorityColor(a2.pain_level), marginTop: '8px', marginBottom: '24px' }}>
+                {a2.pain_level || '—'}
+              </div>
+
+              <MiniLabel>DETECTED SIGNALS</MiniLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                {(a2.signals || []).length === 0 && (
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)', fontStyle: 'italic' }}>No signals detected</span>
+                )}
+                {(a2.signals || []).slice(0, 6).map((sig, i) => (
+                  <div key={i} style={{ background: 'var(--surface-inner, rgba(0,0,0,0.03))', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px 14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                      <span style={{
+                        fontFamily: 'var(--font-mono)', fontSize: '10px', flexShrink: 0,
+                        padding: '2px 8px', borderRadius: '10px', background: 'var(--accent-tint)',
+                        color: 'var(--accent)', border: '1px solid var(--accent)',
+                      }}>{sig.type}</span>
+                      {sig.verified === true ? (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', padding: '2px 8px', borderRadius: '10px', background: 'rgba(0,180,100,0.08)', color: '#00b464', border: '1px solid #00b464', letterSpacing: '0.08em' }}>✓ VERIFIED</span>
+                      ) : sig.verified === false ? (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', padding: '2px 8px', borderRadius: '10px', background: 'rgba(255,160,0,0.08)', color: 'var(--warning)', border: '1px solid var(--warning)', letterSpacing: '0.08em' }}>⚠ UNVERIFIED</span>
+                      ) : null}
+                      {sig.source && (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)', marginLeft: 'auto' }}>{sig.source.split(' (')[0].slice(0, 40)}</span>
+                      )}
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                      {sig.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Section>
+      </div>
+
+      {/* ════════ 3. OPPORTUNITY SCORE (Agent 3) ════════ */}
+      <div id="section-scoring">
+        <Section index={3} label="OPPORTUNITY SCORE — AGENT 3">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            {/* Score breakdown */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
+              <MiniLabel>SCORE BREAKDOWN</MiniLabel>
+              {[
+                { label: 'Intent', value: a3.intent_score, max: 1 },
+                { label: 'Conversion', value: a3.conversion_score, max: 1 },
+                { label: 'Deal Size', value: a3.deal_size_score, max: 1 },
+                { label: 'Expansion', value: a3.expansion_score, max: 1 },
+                { label: 'Strain', value: a3.strain_score, max: 1 },
+              ].map((row, i, arr) => (
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)' }}>{row.label}</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: 'var(--text-primary)', fontWeight: 600 }}>{score100(row.value)}/100</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Summary + key signals */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
+              <MiniLabel>SUMMARY</MiniLabel>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.65, marginTop: '10px', marginBottom: '24px' }}>
+                {a3.summary || '—'}
+              </p>
+
+              <MiniLabel>KEY SIGNALS</MiniLabel>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                {(a3.key_signals || []).map((sig, i) => (
+                  <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--accent)', color: 'var(--accent)' }}>
+                    {sig}
+                  </span>
+                ))}
+                {(a3.key_signals || []).length === 0 && (
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>None detected</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Section>
+      </div>
+
+      {/* ════════ 4. STRATEGY (Agent 3.5) ════════ */}
+      <div id="section-strategy">
+        <Section index={4} label="STRATEGY — AGENT 3.5">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {[
+              { label: 'BUYING STYLE', value: a35.buying_style || '—' },
+              { label: 'OFFER', value: a35.offer || '—' },
+              { label: 'ENTRY POINT', value: a35.entry_point || '—' },
+              { label: 'TECH STRENGTH', value: a35.tech_strength != null ? pct(a35.tech_strength) : '—' },
+              { label: 'STRATEGY NOTE', value: a35.strategy_note || '—', span: 2 },
+            ].map((row) => (
+              <div key={row.label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px 24px', boxShadow: 'var(--shadow)', gridColumn: row.span === 2 ? 'span 2' : undefined }}>
+                <MiniLabel>{row.label}</MiniLabel>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: 'var(--text-primary)', marginTop: '6px' }}>
+                  {row.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
+
+      {/* ════════ 5. GTM DECISION (Agent 4) ════════ */}
+      <div id="section-decision">
+        <Section index={5} label="GTM DECISION — AGENT 4">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            {/* Strategy + offer */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
+              <MiniLabel>STRATEGY</MiniLabel>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: '32px', color: 'var(--accent)', marginTop: '8px' }}>
+                {a4.strategy || '—'}
+              </div>
+              <div style={{ marginTop: '24px' }}>
+                <MiniLabel>RECOMMENDED OFFER</MiniLabel>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.6, marginTop: '8px' }}>
+                  {a4.recommended_offer || '—'}
+                </p>
+              </div>
+              <div style={{ marginTop: '20px' }}>
+                <MiniLabel>ENTRY POINT</MiniLabel>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.6, marginTop: '8px' }}>
+                  {a4.entry_point || '—'}
+                </p>
+              </div>
+            </div>
+
+            {/* Scores at a glance */}
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
+              <MiniLabel>SCORES AT A GLANCE</MiniLabel>
+              {[
+                { label: 'Priority', value: a4.priority || '—', isTag: true },
+                { label: 'Intent', value: pct(a4.intent_score) },
+                { label: 'Conversion', value: pct(a4.conversion_score) },
+                { label: 'Deal Size', value: pct(a4.deal_size_score) },
+                { label: 'Risk', value: pct(a4.risk_score) },
+              ].map((row, i, arr) => (
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)' }}>{row.label}</span>
+                  {row.isTag ? (
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '4px 12px', borderRadius: '20px', border: `1px solid ${priorityColor(row.value)}`, color: priorityColor(row.value) }}>
+                      {row.value}
+                    </span>
+                  ) : (
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{row.value}</span>
+                  )}
+                </div>
+              ))}
+
+              {(a4.key_signals || []).length > 0 && (
+                <div style={{ marginTop: '20px' }}>
+                  <MiniLabel>KEY SIGNALS</MiniLabel>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                    {a4.key_signals.map((sig, i) => (
+                      <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 10px', borderRadius: '10px', background: 'var(--accent-tint)', color: 'var(--accent)', border: '1px solid var(--accent)' }}>
+                        {sig}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </Section>
+      </div>
+
+      {/* ════════ 6. OUTREACH (Agent 5) ════════ */}
+      <div id="section-outreach">
+        <Section index={6} label="OUTREACH — AGENT 5">
+          {/* Persona + channel + priority */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+            {[
+              { label: 'TARGET PERSONA', value: a5.persona || '—' },
+              { label: 'CHANNEL', value: a5.channel ? a5.channel.replace(/_/g, ' ').toUpperCase() : '—' },
+              { label: 'PRIORITY', value: a5.priority || '—' },
+            ].map((row) => (
+              <div key={row.label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px 24px', boxShadow: 'var(--shadow)' }}>
+                <MiniLabel>{row.label}</MiniLabel>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: 'var(--text-primary)', marginTop: '6px' }}>{row.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Subject */}
+          {a5.subject && (
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px 28px', marginBottom: '16px', boxShadow: 'var(--shadow)' }}>
+              <MiniLabel>SUBJECT LINE</MiniLabel>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-primary)', marginTop: '8px', fontStyle: 'italic' }}>
+                {a5.subject}
+              </div>
+            </div>
+          )}
+
+          {/* Message */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '32px', boxShadow: 'var(--shadow)' }}>
+            <MiniLabel>MESSAGE</MiniLabel>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.85, whiteSpace: 'pre-wrap', marginTop: '12px' }}>
+              {a5.message || 'No message generated.'}
+            </p>
+          </div>
+
+          <div style={{ marginTop: '20px' }}>
+            <button onClick={handleCopy} style={{
+              borderRadius: '20px', padding: '10px 24px',
+              fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 500,
+              color: copied ? '#fff' : 'var(--text-primary)',
+              background: copied ? 'var(--accent)' : 'transparent',
+              border: copied ? 'none' : '1px solid var(--border)',
+              transition: 'all 150ms', cursor: 'pointer',
+            }}>
+              {copied ? '✓ Copied' : 'Copy message'}
+            </button>
+          </div>
+        </Section>
+      </div>
+
+      {/* ════════ REASONING LOG (Trace) ════════ */}
       {trace.length > 0 && (
         <div id="section-reasoning">
           <Section index={7} label="REASONING LOG">
-            <p style={{
-              fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '20px',
-            }}>
-              Analysis complete for {company.name} · Verdict: <span style={{
-                color: company.confidence === 'HIGH' ? 'var(--accent)' : company.confidence === 'MEDIUM' ? 'var(--warning)' : 'var(--text-muted)',
-                fontWeight: 600,
-              }}>{company.confidence}</span>
-              {decisionMaker.role && <> · Recommended persona: {decisionMaker.role.split('·')[0].trim()}</>}
-            </p>
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '24px', padding: '28px 32px', boxShadow: 'var(--shadow)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px', marginBottom: '20px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)' }} />
@@ -526,13 +581,10 @@ function CompanyReport({ company, outreachTab, setOutreachTab, outreachLabels, o
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {trace.map((line, i) => (
-                  <div key={i} style={{
-                    fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.7,
-                    display: 'flex', gap: '16px',
-                  }}>
+                  <div key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.7, display: 'flex', gap: '16px' }}>
                     <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>{line.time}</span>
-                    <span style={{ color: 'var(--accent)', flexShrink: 0, minWidth: '140px', fontWeight: 500 }}>{line.agent}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>→  {line.action}</span>
+                    <span style={{ color: 'var(--accent)', flexShrink: 0, minWidth: '160px', fontWeight: 500 }}>{line.agent}</span>
+                    <span style={{ color: 'var(--text-primary)' }}>→ {line.action}</span>
                   </div>
                 ))}
               </div>
@@ -544,21 +596,8 @@ function CompanyReport({ company, outreachTab, setOutreachTab, outreachLabels, o
   );
 }
 
-/* ═══════ HELPERS ═══════ */
 
-function TimelineEvent({ evt, isLast }) {
-  return (
-    <div style={{ position: 'relative', marginBottom: isLast ? '0' : '36px' }}>
-      <div style={{
-        position: 'absolute', left: '-24px', top: '4px', width: '8px', height: '8px',
-        borderRadius: '50%', background: evt.type === 'positive' ? 'var(--accent)' : 'var(--warning)', marginLeft: '-3px',
-      }} />
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>{evt.date}</div>
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.65 }}>{evt.label}</p>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-muted)' }}>[{evt.source}]</span>
-    </div>
-  );
-}
+/* ═══════ HELPERS ═══════ */
 
 function Section({ children, index, label }) {
   return (
@@ -575,5 +614,9 @@ function Section({ children, index, label }) {
 }
 
 function MiniLabel({ children }) {
-  return <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>{children}</div>;
+  return (
+    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+      {children}
+    </div>
+  );
 }

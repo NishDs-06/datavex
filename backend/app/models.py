@@ -59,6 +59,8 @@ class CompanyListItem(BaseModel):
     decision_maker: Optional[DecisionMakerSummary] = None
     strongest_match: Optional[StrongestMatchSummary] = None
     updated_at: Optional[str] = None
+    competitor: bool = False
+    data: dict = {}
 
 
 class CompanyListResponse(BaseModel):
@@ -89,6 +91,19 @@ class CompanyDetailResponse(BaseModel):
     capability_match: list[dict] = []
     strongest_match: dict = {}
     trace: list[dict] = []
+    pain_level: str = ""
+    pain_tags: list[str] = []
+    # Agent outputs — namespaced per pipeline agent
+    agent1: dict = {}
+    agent2: dict = {}
+    agent3: dict = {}
+    agent35: dict = {}
+    agent4: dict = {}
+    agent5: dict = {}
+    # Competitor flag
+    competitor: bool = False
+    competitor_note: str = ""
+    signal_counts: dict = {}
 
 
 # ── Capability ─────────────────────────────────────────────

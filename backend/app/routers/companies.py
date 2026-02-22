@@ -81,6 +81,15 @@ def list_companies(
             decision_maker=dm_summary,
             strongest_match=sm_summary,
             updated_at=c.updated_at.isoformat() if c.updated_at else None,
+            competitor=data.get("competitor", False),
+            data={
+                "competitor": data.get("competitor", False),
+                "competitor_note": data.get("competitor_note", ""),
+                "signal_counts": data.get("signal_counts", {}),
+                "pain_level": data.get("pain_level", ""),
+                "agent4": data.get("agent4", {}),
+                "agent5": data.get("agent5", {}),
+            },
         ))
 
     return CompanyListResponse(data=items, total=total, limit=limit, offset=offset)
@@ -113,6 +122,17 @@ def get_company(company_id: str, db: Session = Depends(get_db)):
         capability_match=data.get("capabilityMatch") or data.get("capability_match", []),
         strongest_match=data.get("strongestMatch") or data.get("strongest_match", {}),
         trace=data.get("trace", []),
+        pain_level=data.get("pain_level", ""),
+        pain_tags=data.get("pain_tags") or data.get("painTags", []),
+        agent1=data.get("agent1", {}),
+        agent2=data.get("agent2", {}),
+        agent3=data.get("agent3", {}),
+        agent35=data.get("agent35", {}),
+        agent4=data.get("agent4", {}),
+        agent5=data.get("agent5", {}),
+        competitor=data.get("competitor", False),
+        competitor_note=data.get("competitor_note", ""),
+        signal_counts=data.get("signal_counts", {}),
     )
 
 

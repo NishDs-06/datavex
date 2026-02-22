@@ -1,25 +1,9 @@
 /**
  * DataVex API Client
- * Connects React frontend to FastAPI backend
+ * Connects React frontend to FastAPI backend (http://localhost:8000)
  */
 
 const API_BASE = 'http://localhost:8000/api/v1';
-
-export async function triggerScan(query) {
-    const res = await fetch(`${API_BASE}/scan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, sources: ['github', 'web', 'news'], depth: 'full' }),
-    });
-    if (!res.ok) throw new Error(`Scan failed: ${res.status}`);
-    return res.json();
-}
-
-export async function getScanStatus(scanId) {
-    const res = await fetch(`${API_BASE}/scan/${scanId}`);
-    if (!res.ok) throw new Error(`Status check failed: ${res.status}`);
-    return res.json();
-}
 
 export async function getCompanies(sort = 'score', order = 'desc') {
     const res = await fetch(`${API_BASE}/companies?sort_by=${sort}&order=${order}&limit=50`);
@@ -30,18 +14,6 @@ export async function getCompanies(sort = 'score', order = 'desc') {
 export async function getCompany(id) {
     const res = await fetch(`${API_BASE}/companies/${id}`);
     if (!res.ok) throw new Error(`Company fetch failed: ${res.status}`);
-    return res.json();
-}
-
-export async function getCapabilityMatch(id) {
-    const res = await fetch(`${API_BASE}/companies/${id}/capability-match`);
-    if (!res.ok) throw new Error(`Capability match failed: ${res.status}`);
-    return res.json();
-}
-
-export async function getTrace(id) {
-    const res = await fetch(`${API_BASE}/companies/${id}/trace`);
-    if (!res.ok) throw new Error(`Trace fetch failed: ${res.status}`);
     return res.json();
 }
 
